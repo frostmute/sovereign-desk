@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sovereign Desk — Interview War Room & Teleprompter</title>
+  <style>
+    :root {
+      --bg: #090b0e;
+      --surface: #11141a;
+      --surface-elevated: #181d26;
+      --surface-card: #1c222d;
+      --border: #262c37;
+      --border-subtle: #1c222c;
+      --border-highlight: #3a4353;
+      --text-main: #f0f3f6;
+      --text-muted: #8b949e;
+      --text-dim: #545d68;
+      --accent: #d4a373;
+      --accent-muted: rgba(212, 163, 115, 0.15);
+      --accent-glow: rgba(212, 163, 115, 0.25);
+      --success: #3fb950;
+      --success-muted: rgba(63, 185, 80, 0.15);
+      --warning: #e3b341;
+      --danger: #f85149;
+      --font-serif: "Iowan Old Style", "Apple Garamond", "Baskerville", "Times New Roman", serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: "SF Mono", "JetBrains Mono", Menlo, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 24px 36px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Masthead */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .brand-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    h1.war-room-title {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: var(--success);
+      border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 10px rgba(63, 185, 80, 0.8);
+      animation: pulse 2s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.15); }
+    }
+
+    .hud-status {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      background: var(--surface);
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+    }
+
+    .btn {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 7px 14px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover {
+      border-color: var(--accent);
+      color: var(--text-main);
+      background: var(--surface-elevated);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #090b0e;
+      font-weight: 600;
+      border-color: var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #e5b382;
+      color: #090b0e;
+    }
+
+    /* Target Selector Strip */
+    .target-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 20px;
+      margin-bottom: 24px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .target-info {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .target-company-label {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      color: var(--text-main);
+    }
+
+    .target-role-sub {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--accent);
+      letter-spacing: 0.04em;
+    }
+
+    .target-dropdown-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .target-dropdown-wrap label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    select.target-select {
+      background: var(--surface-elevated);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* Teleprompter High-Leverage Strip */
+    .pillar-strip {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .pillar-card {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 14px;
+      border-top: 2px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .pillar-card:hover {
+      border-top-color: var(--accent);
+      background: var(--surface-elevated);
+    }
+
+    .pillar-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .pillar-text {
+      font-size: 11px;
+      color: var(--text-main);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    /* War Room 3-Column Layout */
+    .war-room-grid {
+      display: grid;
+      grid-template-columns: 340px 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* Column Frames */
+    .column-panel {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      padding: 20px;
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .column-title {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--text-main);
+    }
+
+    .column-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      padding: 2px 6px;
+      background: var(--surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    /* Interviewer Dossier Cards */
+    .interviewer-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      padding: 14px;
+      margin-bottom: 14px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .interviewer-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 2px;
+    }
+
+    .interviewer-role {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .interviewer-notes {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 8px 10px;
+      border-radius: 2px;
+      margin-bottom: 8px;
+    }
+
+    .interviewer-contact-links {
+      display: flex;
+      gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    .interviewer-contact-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+
+    .interviewer-contact-links a:hover {
+      color: var(--accent);
+    }
+
+    /* Strategy Box */
+    .strategy-box {
+      background: rgba(212, 163, 115, 0.05);
+      border: 1px dashed var(--accent);
+      padding: 14px;
+      margin-top: 16px;
+    }
+
+    .strategy-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+      letter-spacing: 0.05em;
+    }
+
+    .strategy-content {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Center Teleprompter & Talking Points */
+    .teleprompter-search-bar {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 10px 14px 10px 36px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .talking-point-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      padding: 16px;
+      margin-bottom: 14px;
+      border-left: 3px solid var(--border);
+      transition: all 0.15s ease;
+    }
+
+    .talking-point-item:hover {
+      border-color: var(--border-highlight);
+      background: var(--surface-card);
+    }
+
+    .talking-point-item.ARCHITECTURAL_PARITY {
+      border-left-color: var(--accent);
+    }
+
+    .talking-point-item.COMMIT_INTELLIGENCE {
+      border-left-color: var(--success);
+    }
+
+    .talking-point-item.COUNTER_OBJECTION {
+      border-left-color: var(--warning);
+    }
+
+    .talking-point-item.CONSENSUS_STABILITY {
+      border-left-color: #58a6ff;
+    }
+
+    .tp-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .tp-category {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .tp-category.ARCHITECTURAL_PARITY { color: var(--accent); }
+    .tp-category.COMMIT_INTELLIGENCE { color: var(--success); }
+    .tp-category.COUNTER_OBJECTION { color: var(--warning); }
+    .tp-category.CONSENSUS_STABILITY { color: #58a6ff; }
+
+    .tp-source-badge {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-dim);
+      background: var(--bg);
+      padding: 2px 6px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tp-headline {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      color: var(--text-main);
+      font-weight: 400;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .tp-detail {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 10px 12px;
+      border-left: 2px solid var(--border-highlight);
+      margin-bottom: 8px;
+    }
+
+    .tp-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .tp-link {
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+
+    .tp-link:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* Right Column: Monitored Repos & Feeds */
+    .telemetry-item {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .telemetry-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+
+    .telemetry-repo-name {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .telemetry-stars {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    .telemetry-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .telemetry-time {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-dim);
+    }
+
+    .feed-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .feed-name {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .feed-title {
+      font-size: 11px;
+      color: var(--text-main);
+      line-height: 1.4;
+      margin-bottom: 4px;
+    }
+
+    .feed-link {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      color: var(--text-dim);
+      text-decoration: none;
+    }
+
+    .feed-link:hover {
+      color: var(--accent);
+    }
+
+    /* Literary Diff Drawer */
+    .diff-drawer {
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .diff-drawer-title {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .diff-mini-item {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      padding-left: 8px;
+      border-left: 2px solid var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .war-room-grid {
+        grid-template-columns: 1fr;
+      }
+      .pillar-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Masthead -->
+  <header>
+    <div>
+      <div class="brand-eyebrow">Classified Intelligence // Tactical Teleprompter</div>
+      <h1 class="war-room-title">Interview War Room & Infiltration HUD</h1>
+    </div>
+    <div class="header-actions">
+      <div class="hud-status">
+        <span class="status-badge"></span>
+        <span>TELEPROMPTER HUD ACTIVE</span>
+      </div>
+      <a href="/" class="btn">&larr; Morning Executive Briefing</a>
+      <a id="view-resume-link" href="/output/resume.pdf" target="_blank" class="btn btn-primary">View Tailored PDF</a>
+    </div>
+  </header>
+
+  <!-- Target Selector Strip -->
+  <div class="target-strip">
+    <div class="target-info">
+      <span class="target-company-label" id="target-company">Anthropic</span>
+      <span class="target-role-sub" id="target-role">Staff Systems Engineer, Cluster Orchestration &bull; 96% Match</span>
+    </div>
+    <div class="target-dropdown-wrap">
+      <label for="app-select">Target Application:</label>
+      <select id="app-select" class="target-select" onchange="switchTarget(this.value)">
+        <option value="app-101">Anthropic — Staff Systems Engineer</option>
+        <option value="app-102">Modal Labs — Senior Distributed Systems</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Teleprompter High-Leverage Strip -->
+  <div class="pillar-strip" id="pillar-strip">
+    <div class="pillar-card">
+      <div class="pillar-num">PILLAR 01 // INFERENCE ROUTING</div>
+      <div class="pillar-text">Rust/eBPF inference router: 65,000 QPS, 18ms P99 latency (down from 142ms).</div>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-num">PILLAR 02 // SPECULATIVE DECODING</div>
+      <div class="pillar-text">Dynamic speculative decoding across 256 H100 SXM5 GPUs (2.4x throughput boost).</div>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-num">PILLAR 03 // NVME CACHING CSI</div>
+      <div class="pillar-text">Host NVMe memory checkpoint caching CSI driver: cold starts 3.8m &rarr; 4.2s.</div>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-num">PILLAR 04 // ZERO-COPY STORAGE</div>
+      <div class="pillar-text">LSM-tree compaction in Rust: 62% write amplification reduction, no I/O stalls.</div>
+    </div>
+    <div class="pillar-card">
+      <div class="pillar-num">PILLAR 05 // RAFT CONSENSUS</div>
+      <div class="pillar-text">Multi-region Raft refactor: 18 months zero unrecoverable partition incidents at 99.999%.</div>
+    </div>
+  </div>
+
+  <!-- War Room 3-Column Grid -->
+  <div class="war-room-grid">
+
+    <!-- Left Column: Interviewer Dossier & Infiltration Strategy -->
+    <div>
+      <div class="column-panel">
+        <div class="column-header">
+          <span class="column-title">Interviewer Dossier</span>
+          <span class="column-badge" id="contacts-count">2 Identified</span>
+        </div>
+
+        <div id="contacts-container">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="strategy-box">
+          <div class="strategy-title">Infiltration Angle of Attack</div>
+          <div class="strategy-content" id="strategy-content">
+            Focus discussion on kernel/driver layer solutions (eBPF, NVMe page caches) rather than web tier orchestration. Address cluster rebalancing tail latency directly.
+          </div>
+        </div>
+
+        <div class="diff-drawer">
+          <div class="diff-drawer-title">Tailored Bullet Diff Highlights</div>
+          <div id="diff-highlights-container">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Center Column: Live Teleprompter & Talking Points -->
+    <div>
+      <div class="column-panel" style="min-height: 600px;">
+        <div class="column-header">
+          <span class="column-title">Tactical Talking Points & Counters</span>
+          <span class="column-badge" id="tp-count-badge">Live Prompter</span>
+        </div>
+
+        <!-- Search / Filter -->
+        <div class="teleprompter-search-bar">
+          <span class="search-icon">&gt;</span>
+          <input 
+            type="text" 
+            id="tp-search" 
+            class="search-input" 
+            placeholder="Type keyword to filter tactical points (e.g. NVMe, eBPF, PagedAttention, Raft, Ray)... [Key: /]" 
+            oninput="filterTalkingPoints(this.value)"
+          />
+        </div>
+
+        <!-- Talking Points Stream -->
+        <div id="talking-points-container">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); padding: 24px; text-align: center;">
+            Loading tactical intelligence stream from SQLite...
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Right Column: Monitored Repos & Architectural Telemetry -->
+    <div>
+      <div class="column-panel">
+        <div class="column-header">
+          <span class="column-title">Target Repositories</span>
+          <span class="column-badge">GitHub Infiltration</span>
+        </div>
+
+        <div id="repos-container">
+          <!-- Dynamically populated -->
+        </div>
+
+        <div class="column-header" style="margin-top: 24px;">
+          <span class="column-title">Engineering RSS Feeds</span>
+          <span class="column-badge">Signals</span>
+        </div>
+
+        <div id="feeds-container">
+          <!-- Dynamically populated -->
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const state = {
+      appId: new URLSearchParams(window.location.search).get('appId') || 'app-101',
+      warRoomData: null,
+      searchTerm: '',
+    };
+
+    async function loadWarRoom() {
+      try {
+        const res = await fetch(`/api/war-room?appId=${state.appId}`);
+        const data = await res.json();
+        state.warRoomData = data;
+
+        // Render UI sections
+        renderTargetHeader(data.application);
+        renderContacts(data.contacts);
+        renderTalkingPoints(data.talkingPoints);
+        renderRepositories(data.repositories);
+        renderFeeds(data.feeds);
+        renderDiffHighlights(data.diffReport);
+
+        // Update view resume link
+        const resumeBtn = document.getElementById('view-resume-link');
+        const customPdf = `/output/resume-${state.appId}.pdf`;
+        resumeBtn.href = data.diffReport?.customPdfAvailable ? customPdf : '/output/resume.pdf';
+
+      } catch (err) {
+        console.error("Failed to load war room data:", err);
+      }
+    }
+
+    function renderTargetHeader(app) {
+      if (!app) return;
+      document.getElementById('target-company').innerText = app.company;
+      document.getElementById('target-role').innerText = `${app.role} • ${app.match_score}% Match • ${app.transport || 'API'}`;
+      
+      const select = document.getElementById('app-select');
+      select.value = app.id;
+    }
+
+    function renderContacts(contacts) {
+      const container = document.getElementById('contacts-container');
+      const countBadge = document.getElementById('contacts-count');
+      if (!contacts || contacts.length === 0) {
+        container.innerHTML = '<div style="font-size: 11px; color: var(--text-dim);">No contacts recorded for target.</div>';
+        countBadge.innerText = '0 Found';
+        return;
+      }
+
+      countBadge.innerText = `${contacts.length} Briefed`;
+      container.innerHTML = contacts.map(c => `
+        <div class="interviewer-card">
+          <div class="interviewer-name">${c.name}</div>
+          <div class="interviewer-role">${c.title || 'Technical Leadership'}</div>
+          <div class="interviewer-notes">${c.notes || 'No profile dossier.'}</div>
+          <div class="interviewer-contact-links">
+            ${c.email ? `<a href="mailto:${c.email}" target="_blank">&bull; ${c.email}</a>` : ''}
+            ${c.linkedin_url ? `<a href="${c.linkedin_url}" target="_blank">&bull; LinkedIn Dossier</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTalkingPoints(points) {
+      const container = document.getElementById('talking-points-container');
+      const badge = document.getElementById('tp-count-badge');
+      if (!points || points.length === 0) {
+        container.innerHTML = '<div style="font-size: 12px; color: var(--text-muted); padding: 16px;">No tactical talking points indexed.</div>';
+        badge.innerText = '0 Points';
+        return;
+      }
+
+      const filtered = state.searchTerm 
+        ? points.filter(p => 
+            p.headline.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+            p.detail.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+            p.category.toLowerCase().includes(state.searchTerm.toLowerCase())
+          )
+        : points;
+
+      badge.innerText = `${filtered.length} Indexed`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="font-size: 12px; color: var(--text-dim); padding: 20px; text-align: center;">No points matching "${state.searchTerm}". Press Esc to reset.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(p => `
+        <div class="talking-point-item ${p.category}">
+          <div class="tp-meta">
+            <span class="tp-category ${p.category}">${p.category.replace(/_/g, ' ')}</span>
+            <span class="tp-source-badge">${p.source_type.replace(/_/g, ' ')}</span>
+          </div>
+          <div class="tp-headline">${p.headline}</div>
+          <div class="tp-detail">${p.detail}</div>
+          <div class="tp-footer">
+            <span>Direct Recall Defense</span>
+            ${p.source_url ? `<a href="${p.source_url}" target="_blank" class="tp-link">Source Intel &rarr;</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderRepositories(repos) {
+      const container = document.getElementById('repos-container');
+      if (!repos || repos.length === 0) {
+        container.innerHTML = '<div style="font-size: 11px; color: var(--text-dim);">No repositories monitored.</div>';
+        return;
+      }
+
+      container.innerHTML = repos.slice(0, 3).map(r => `
+        <div class="telemetry-item">
+          <div class="telemetry-item-header">
+            <span class="telemetry-repo-name">${r.repo_name}</span>
+            <span class="telemetry-stars">&#9733; ${(r.stars || 0).toLocaleString()}</span>
+          </div>
+          <div class="telemetry-desc">${r.recent_activity_summary || 'Monitored for architectural changes.'}</div>
+          <div class="telemetry-time">
+            <a href="${r.github_url}" target="_blank" style="color: var(--accent); text-decoration: none;">GitHub Target &rarr;</a>
+            &bull; Scanned: ${r.last_scanned_at || 'Recently'}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderFeeds(feeds) {
+      const container = document.getElementById('feeds-container');
+      if (!feeds || feeds.length === 0) {
+        container.innerHTML = '<div style="font-size: 11px; color: var(--text-dim);">No RSS feeds monitored.</div>';
+        return;
+      }
+
+      container.innerHTML = feeds.slice(0, 3).map(f => `
+        <div class="feed-card">
+          <div class="feed-name">${f.feed_name}</div>
+          <div class="feed-title">${f.last_post_title || 'Engineering Architecture Updates'}</div>
+          <a href="${f.last_post_url || f.feed_url}" target="_blank" class="feed-link">Read Post &rarr;</a>
+        </div>
+      `).join('');
+    }
+
+    function renderDiffHighlights(diff) {
+      const container = document.getElementById('diff-highlights-container');
+      const stratBox = document.getElementById('strategy-content');
+      if (!diff) return;
+
+      if (diff.applicationStrategy) {
+        stratBox.innerText = diff.applicationStrategy;
+      }
+
+      if (diff.bullets && diff.bullets.length > 0) {
+        container.innerHTML = diff.bullets.slice(0, 2).map(b => `
+          <div class="diff-mini-item">
+            <strong style="color: var(--text-main);">${b.title}:</strong> ${b.rationale}
+          </div>
+        `).join('');
+      }
+    }
+
+    function filterTalkingPoints(term) {
+      state.searchTerm = term.trim();
+      if (state.warRoomData) {
+        renderTalkingPoints(state.warRoomData.talkingPoints);
+      }
+    }
+
+    function switchTarget(newAppId) {
+      state.appId = newAppId;
+      const url = new URL(window.location);
+      url.searchParams.set('appId', newAppId);
+      window.history.pushState({}, '', url);
+      loadWarRoom();
+    }
+
+    // Keyboard shortcuts: / to search, Esc to clear
+    window.addEventListener('keydown', (e) => {
+      const search = document.getElementById('tp-search');
+      if (e.key === '/' && document.activeElement !== search) {
+        e.preventDefault();
+        search.focus();
+        search.select();
+      } else if (e.key === 'Escape' && document.activeElement === search) {
+        search.value = '';
+        filterTalkingPoints('');
+        search.blur();
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', loadWarRoom);
+  </script>
+
+</body>
+</html>

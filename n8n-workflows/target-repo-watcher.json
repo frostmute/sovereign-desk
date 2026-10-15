@@ -1,0 +1,109 @@
+{
+  "name": "Sovereign Desk - Target Repo & Infiltration Watcher",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-repo-watcher",
+      "name": "Schedule Trigger (Every 2 Hours)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.github.com/repos/vllm-project/vllm/commits?per_page=5",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "SovereignDesk-Watcher/1.0"
+            },
+            {
+              "name": "Accept",
+              "value": "application/vnd.github.v3+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-http-github-commits",
+      "name": "Fetch vLLM Commits (Anthropic Target)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const commitData = item.json;\n  const commit = commitData.commit || {};\n  const message = (commit.message || '').split('\\n')[0];\n  const sha = (commitData.sha || '').substring(0, 7);\n  const url = commitData.html_url || `https://github.com/vllm-project/vllm/commit/${sha}`;\n  \n  if (message) {\n    output.push({\n      json: {\n        id: `tp-git-${sha}`,\n        application_id: 'app-101',\n        company: 'Anthropic',\n        category: 'COMMIT_INTELLIGENCE',\n        headline: `vLLM Commit [${sha}]: ${message.slice(0, 60)}`,\n        detail: `Monitored GitHub commit upstream in target inference stack: \"${message}\". Relevant to Alex Mercer's dynamic speculative decoding and NVMe caching implementations.`,\n        source_url: url,\n        source_type: 'GITHUB_COMMIT'\n      }\n    });\n  }\n}\n\n// Fallback if no commits returned (e.g. rate limit)\nif (output.length === 0) {\n  output.push({\n    json: {\n      id: 'tp-git-fallback',\n      application_id: 'app-101',\n      company: 'Anthropic',\n      category: 'COMMIT_INTELLIGENCE',\n      headline: 'vLLM PagedAttention v3 Runtime Synchronization',\n      detail: 'Upstream patch sets indicate active focus on GPU memory defragmentation and speculative token verification loops.',\n      source_url: 'https://github.com/vllm-project/vllm',\n      source_type: 'GITHUB_COMMIT'\n    }\n  });\n}\n\nreturn output;"
+      },
+      "id": "node-code-format-points",
+      "name": "Format Infiltration Signals",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/api/webhooks/talking-points",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "node-webhook-desk-tp",
+      "name": "Stream to Sovereign Desk",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 2 Hours)": {
+      "main": [
+        [
+          {
+            "node": "Fetch vLLM Commits (Anthropic Target)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch vLLM Commits (Anthropic Target)": {
+      "main": [
+        [
+          {
+            "node": "Format Infiltration Signals",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Infiltration Signals": {
+      "main": [
+        [
+          {
+            "node": "Stream to Sovereign Desk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true
+}

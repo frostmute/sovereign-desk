@@ -15,6 +15,12 @@ import {
   getTimelineEvents,
   insertContact,
   getContacts,
+  getTargetRepositories,
+  insertTargetRepository,
+  getBlogRssFeeds,
+  insertBlogRssFeed,
+  getTalkingPoints,
+  insertTalkingPoint,
 } from "./db";
 import { generateBulletDiff, compileBespokeResume } from "./diff-engine";
 
@@ -319,6 +325,120 @@ const server = Bun.serve({
       );
     }
 
+    // API: Live Interview War Room Dossier & Teleprompter
+    if (pathname === "/api/war-room") {
+      const appId = url.searchParams.get("appId") || url.searchParams.get("id");
+      const apps = (getApplications() as any[]) || [];
+      let targetApp = appId ? apps.find((a) => a.id === appId) : null;
+      if (!targetApp && apps.length > 0) {
+        targetApp = apps[0];
+      }
+
+      if (!targetApp) {
+        targetApp = {
+          id: "app-101",
+          company: "Anthropic",
+          role: "Staff Systems Engineer, Cluster Orchestration",
+          match_score: 96,
+          transport: "Greenhouse API",
+          status: "PENDING_AUTHORIZATION",
+        };
+      }
+
+      const company = targetApp.company;
+      const contacts = getContacts(company);
+      const allContacts = contacts.length > 0 ? contacts : getContacts();
+      const repos = getTargetRepositories(company);
+      const allRepos = repos.length > 0 ? repos : getTargetRepositories();
+      const feeds = getBlogRssFeeds(company);
+      const allFeeds = feeds.length > 0 ? feeds : getBlogRssFeeds();
+      const talkingPoints = getTalkingPoints(targetApp.id, company);
+      const diffReport = generateBulletDiff(targetApp);
+
+      return Response.json(
+        {
+          application: targetApp,
+          contacts: allContacts,
+          repositories: allRepos,
+          feeds: allFeeds,
+          talkingPoints,
+          diffReport,
+          teleprompterSummary: {
+            candidateName: "Garry 'Alex' Mercer",
+            candidateRole: "Staff Distributed Systems & AI Infrastructure Engineer",
+            targetRole: targetApp.role,
+            targetCompany: targetApp.company,
+            matchScore: targetApp.match_score,
+            highLeveragePillars: [
+              "Custom Rust/eBPF inference router (65,000 QPS, 18ms P99 latency)",
+              "Dynamic speculative decoding across 256 H100 SXM5 GPUs (2.4x throughput)",
+              "Host NVMe checkpoint caching Kubernetes CSI driver (3.8m -> 4.2s cold start)",
+              "Zero-copy LSM-tree compaction in Rust (62% write amplification reduction)",
+              "Multi-region Raft consensus with zero partition incidents over 18 months",
+            ],
+          },
+        },
+        { headers }
+      );
+    }
+
+    // API: Ingest Infiltration Signal / Talking Point (from n8n or repo scrapers)
+    if (pathname === "/api/webhooks/talking-points" && req.method === "POST") {
+      try {
+        const body: any = await req.json();
+        const items = Array.isArray(body) ? body : [body];
+        const ids: string[] = [];
+
+        for (const item of items) {
+          if (!item.company || !item.headline || !item.detail) continue;
+
+          const tpId = insertTalkingPoint({
+            id: item.id,
+            application_id: item.application_id || item.applicationId,
+            company: item.company,
+            category: item.category || "COMMIT_INTELLIGENCE",
+            headline: item.headline,
+            detail: item.detail,
+            source_url: item.source_url || item.sourceUrl,
+            source_type: item.source_type || item.sourceType || "GITHUB_COMMIT",
+          });
+          ids.push(tpId);
+
+          if (item.application_id || item.applicationId) {
+            insertTimelineEvent({
+              application_id: item.application_id || item.applicationId,
+              event_type: "INTELLIGENCE_INGESTED",
+              summary: `New infiltration point: "${item.headline}"`,
+              detail: item.detail,
+            });
+          }
+        }
+
+        return Response.json({ success: true, count: ids.length, ids }, { headers });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 400, headers });
+      }
+    }
+
+    // API: Infiltration Engine Telemetry (monitored repos, RSS feeds, stats)
+    if (pathname === "/api/infiltration") {
+      const company = url.searchParams.get("company") || undefined;
+      const repos = getTargetRepositories(company);
+      const feeds = getBlogRssFeeds(company);
+      const points = getTalkingPoints(undefined, company);
+
+      return Response.json(
+        {
+          status: "ACTIVE_SCANNING",
+          monitoredRepositories: repos,
+          monitoredFeeds: feeds,
+          totalTalkingPoints: points.length,
+          lastScanTimestamp: new Date().toISOString(),
+        },
+        { headers }
+      );
+    }
+
     // Serve /output/ files (PDF, PNG previews)
     if (pathname.startsWith("/output/")) {
       const fileName = pathname.replace("/output/", "");
@@ -333,6 +453,17 @@ const server = Bun.serve({
               ? "image/png"
               : "application/octet-stream",
           },
+        });
+      }
+    }
+
+    // Serve War Room UI
+    if (pathname === "/war-room" || pathname === "/war-room.html") {
+      const warRoomPath = join(PUBLIC_DIR, "war-room.html");
+      if (existsSync(warRoomPath)) {
+        const html = readFileSync(warRoomPath, "utf-8");
+        return new Response(html, {
+          headers: { "Content-Type": "text/html; charset=utf-8" },
         });
       }
     }

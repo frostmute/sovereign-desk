@@ -451,9 +451,12 @@
       <div class="brand-eyebrow">Classified Intelligence // Autonomous Talent Desk</div>
       <h1 class="briefing-title">Morning Executive Briefing</h1>
     </div>
-    <div class="system-status">
-      <div><span class="status-badge" id="engine-status-badge"></span><span id="engine-status-text">n8n ENGINE ONLINE</span></div>
-      <div id="engine-status-sub" style="margin-top: 4px; color: var(--text-dim);">LAST SYNC: -- &bull; 0 PENDING DISPATCHES</div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="system-status">
+        <div><span class="status-badge" id="engine-status-badge"></span><span id="engine-status-text">n8n ENGINE ONLINE</span></div>
+        <div id="engine-status-sub" style="margin-top: 4px; color: var(--text-dim);">LAST SYNC: -- &bull; 0 PENDING DISPATCHES</div>
+      </div>
+      <a href="/war-room.html" class="btn btn-secondary" style="border-color: var(--accent); color: var(--accent); text-decoration: none;">Launch War Room &rarr;</a>
     </div>
   </header>
 
@@ -562,6 +565,7 @@
             <span style="color: var(--accent);">&#9632;</span> TYPST ENGINE: <code id="typst-filename">resume.pdf</code> &bull; 1 PAGE &bull; HARVARD SERIF
           </div>
           <div style="display: flex; gap: 8px;">
+            <a id="war-room-link" href="/war-room.html?appId=app-101" class="btn btn-secondary" style="border-color: var(--accent); color: var(--accent); text-decoration: none;">War Room Teleprompter &rarr;</a>
             <a id="view-pdf-btn" href="/output/resume.pdf" target="_blank" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">View PDF</a>
             <button id="recompile-btn" class="btn btn-secondary" onclick="triggerRecompile()">Recompile Typst</button>
             <button id="dispatch-btn" class="btn btn-primary" onclick="triggerActiveDispatch()">1-Click Dispatch Application</button>
@@ -729,6 +733,11 @@
 
         document.getElementById('typst-filename').innerText = pdfFileName;
         document.getElementById('view-pdf-btn').href = pdfUrl;
+
+        const warRoomLink = document.getElementById('war-room-link');
+        if (warRoomLink) {
+          warRoomLink.href = `/war-room.html?appId=${appId}`;
+        }
 
         const dispatchBtn = document.getElementById('dispatch-btn');
         if (isDispatched) {
