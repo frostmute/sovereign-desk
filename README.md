@@ -18,8 +18,9 @@
 9. [n8n Board Scraping Automation (`n8n-workflows/`)](#9-n8n-board-scraping-automation-n8n-workflows)
 10. [REST API & Webhook Specification](#10-rest-api--webhook-specification)
 11. [Data Storage & SQLite Schema (`server/db.ts`)](#11-data-storage--sqlite-schema-serverdbts)
-12. [Docker Compose & Multi-Container Topology](#12-docker-compose--multi-container-topology)
-13. [Operational Runbook & Troubleshooting](#13-operational-runbook--troubleshooting)
+12. [Infiltration Engine & Live Interview War Room (`public/war-room.html`)](#12-infiltration-engine--live-interview-war-room-publicwar-roomhtml)
+13. [Docker Compose & Multi-Container Topology](#13-docker-compose--multi-container-topology)
+14. [Operational Runbook & Troubleshooting](#14-operational-runbook--troubleshooting)
 
 ---
 
@@ -53,21 +54,29 @@ Job seekers in competitive, senior remote technology markets face a structural f
 │   │                             │             │                             │   │
 │   │  • Greenhouse Board Scraper │  Webhooks   │  • Native Bun HTTP Server   │   │
 │   │  • Ashby API Board Scraper  ├────────────>│  • Local SQLite Store       │   │
-│   │  • IMAP Inbox Watcher       │             │  • Typst CLI Child Process  │   │
-│   │  • Outbound Dispatch Hooks  │<────────────┤  • Editorial UI Static Host │   │
+│   │  • Target Repo Watcher      │             │  • Typst CLI Child Process  │   │
+│   │  • Blog RSS Feed Ingestion  │             │  • Infiltration Intelligence│   │
+│   │  • IMAP Inbox Watcher       │             │  • Editorial UI Static Host │   │
+│   │  • Outbound Dispatch Hooks  │<────────────┤  • War Room HUD Static Host │   │
 │   └─────────────────────────────┘   Dispatch  └──────────────┬──────────────┘   │
 │                                                              │                  │
 └──────────────────────────────────────────────────────────────┼──────────────────┘
                                                                │
                                                  Local HTTP    │ http://localhost:3000
                                                                ▼
-                                                ┌─────────────────────────────┐
-                                                │    Dark Editorial Web UI    │
-                                                │  • Morning Briefing Dossier │
-                                                │  • Urgent Decision Queue    │
-                                                │  • Literary Bullet Diff     │
-                                                │  • 1-Click Dispatch Actions │
-                                                └─────────────────────────────┘
+                                ┌───────────────────────────────────────────────┐
+                                │       Dark Editorial High-Density HUDs        │
+                                │                                               │
+                                │ • Executive Morning Briefing (/)              │
+                                │   - Curated Leads & 1-Page Exact Typst Diff   │
+                                │   - Urgent Decision Queue & 1-Click Dispatch  │
+                                │                                               │
+                                │ • Interview War Room & Teleprompter (/war-room)│
+                                │   - High-Leverage Architectural Pillars       │
+                                │   - Target Interviewer Dossier & Warning Notes│
+                                │   - Instant Fuzzy Teleprompter Stream (/ key) │
+                                │   - Real-Time Commits & Engineering RSS Posts │
+                                └───────────────────────────────────────────────┘
 ```
 
 ---
@@ -83,20 +92,25 @@ sovereign-desk/
 │   └── compile-resume.ts       # Sub-second Typst CLI compiler tool
 ├── server/
 │   ├── index.ts                # Bun HTTP server, API endpoints, static assets
-│   └── db.ts                   # bun:sqlite schema, queries, application state
+│   ├── db.ts                   # bun:sqlite schema, queries, application state
+│   └── diff-engine.ts          # Literary Bullet Diff & keyword alignment engine
 ├── public/
-│   └── index.html              # Dark editorial intelligence executive dashboard
+│   ├── index.html              # Dark editorial intelligence executive dashboard
+│   └── war-room.html           # Live interview teleprompter & infiltration HUD
 ├── n8n-workflows/
 │   ├── README.md               # Workflow integration guide
 │   ├── greenhouse-board-scraper.json # Automated Greenhouse board ingestion
-│   └── ashby-board-scraper.json      # Automated Ashby board ingestion
+│   ├── ashby-board-scraper.json      # Automated Ashby board ingestion
+│   ├── imap-inbox-watcher.json       # Recruiter email thread monitor
+│   ├── dispatch-executor.json        # Outbound multipart submission hook
+│   └── target-repo-watcher.json      # Target repo commit watcher & talking point extractor
 ├── docker/
 │   └── Dockerfile.desk         # Production Bun + Typst Debian container
 ├── docker-compose.yml          # Multi-container orchestration (n8n + desk)
 ├── package.json                # Run scripts and dependencies
 ├── docs/
 │   └── remote-work-search-assistant.md # Complete architectural design spec
-└── .gitignore                  # Excludes node_modules/, output/, data/
+└── .gitignore                  # Excludes node_modules/, output/, data/, *.log
 ```
 
 ---
@@ -241,6 +255,7 @@ Access the dashboard at **`http://localhost:3000`**.
 - **Literary Bullet Diff:** Inspect baseline resume bullets side-by-side with bespoke tailored adaptations before submission.
 - **Live Typst Recompilation:** Real-time recompilation button benchmarking latency directly in the browser header.
 - **1-Click Dispatch:** Interactive authorization issuing authenticated cryptographic receipt IDs.
+- **War Room Teleprompter Integration:** Dynamic launch triggers in both the header and Typst preview bar, carrying the active application identifier directly into the live Interview War Room HUD (`/war-room.html?appId=...`).
 
 ---
 
@@ -259,6 +274,12 @@ Pre-built workflow JSON definitions reside in `n8n-workflows/`:
    - **Target:** `https://api.ashbyhq.com/posting-api/job-board/{organization}`.
    - **Filter:** Filters senior infrastructure postings and computes baseline match score.
    - **Ingestion:** Transmits opportunities to the local Sovereign Desk server webhook.
+
+3. **`target-repo-watcher.json` (Milestone 5 Infiltration Engine):**
+   - **Trigger:** Cron schedule (every 2 hours).
+   - **Target:** Target engineering team GitHub repositories (e.g., `vllm-project/vllm`, `modal-labs/modal-client`, `kubernetes-sigs/kueue`).
+   - **Extraction:** Monitors commit history for performance, kernel, and scheduling changes, synthesizing tactical talking points against candidate substrate milestones.
+   - **Ingestion:** Transmits intelligence payloads to `http://host.docker.internal:3000/api/webhooks/talking-points`.
 
 ### Importing Workflows to n8n
 
@@ -336,6 +357,134 @@ Ingests scraped opportunities from n8n or external crawlers into SQLite.
 ]
 ```
 
+### `GET /api/war-room`
+Aggregates target application intelligence, interviewer contacts with behavioral/technical bias notes, monitored GitHub repositories, engineering blog RSS feeds, tactical talking points, literary bullet diff report, and candidate teleprompter pillars for the active interview.
+- **Query Parameters:** `appId` (optional, defaults to primary active application).
+- **Response:**
+```json
+{
+  "application": {
+    "id": "app-101",
+    "company": "Anthropic",
+    "role": "Staff Systems Engineer, Cluster Orchestration",
+    "match_score": 96,
+    "status": "PENDING_AUTHORIZATION",
+    "transport": "Greenhouse API"
+  },
+  "contacts": [
+    {
+      "id": "c-101",
+      "company": "Anthropic",
+      "name": "Dr. Elena Rostova",
+      "title": "Principal Cluster Systems Lead",
+      "email": "elena.rostova@anthropic.com",
+      "linkedin_url": "https://linkedin.com/in/elena-rostova-systems",
+      "notes": "PhD Distributed Systems. Built Anthropic's scheduler. Highly receptive to deterministic gang-scheduling and Raft consensus discussions."
+    }
+  ],
+  "repositories": [
+    {
+      "id": "repo-anthropic-1",
+      "company": "Anthropic",
+      "repo_name": "vllm-project/vllm",
+      "github_url": "https://github.com/vllm-project/vllm",
+      "branch": "main",
+      "stars": 28400,
+      "recent_activity_summary": "14 commits this week on PagedAttention memory fragmentation and chunked prefill scheduler."
+    }
+  ],
+  "feeds": [
+    {
+      "id": "feed-anthropic-1",
+      "company": "Anthropic",
+      "feed_name": "Anthropic Engineering Research",
+      "feed_url": "https://www.anthropic.com/research/rss.xml",
+      "recent_posts_count": 6,
+      "last_post_title": "Core Scheduler Invariants for Distributed Model Serving"
+    }
+  ],
+  "talkingPoints": [
+    {
+      "id": "tp-anthropic-1",
+      "company": "Anthropic",
+      "category": "SCHEDULING_ARCHITECTURE",
+      "headline": "Anthropic vLLM Chunked Prefill vs. Your eBPF Scheduler",
+      "detail": "Anthropic's latest commits optimize chunked prefill chunk sizes. Anchor to your Rust/eBPF inference router (65,000 QPS) handling dynamic token chunking.",
+      "source_url": "https://github.com/vllm-project/vllm/pull/8921",
+      "source_type": "GITHUB_COMMIT"
+    }
+  ],
+  "teleprompterSummary": {
+    "candidateName": "Garry 'Alex' Mercer",
+    "candidateRole": "Staff Distributed Systems & AI Infrastructure Engineer",
+    "targetRole": "Staff Systems Engineer, Cluster Orchestration",
+    "targetCompany": "Anthropic",
+    "matchScore": 96,
+    "highLeveragePillars": [
+      "Custom Rust/eBPF inference router (65,000 QPS, 18ms P99 latency)",
+      "Dynamic speculative decoding across 256 H100 SXM5 GPUs (2.4x throughput)",
+      "Host NVMe checkpoint caching Kubernetes CSI driver (3.8m -> 4.2s cold start)",
+      "Zero-copy LSM-tree compaction in Rust (62% write amplification reduction)",
+      "Multi-region Raft consensus with zero partition incidents over 18 months"
+    ]
+  }
+}
+```
+
+### `GET /api/infiltration`
+Returns real-time telemetry for monitored target repositories, engineering blog RSS feeds, and synthesized talking points.
+- **Query Parameters:** `company` (optional filter).
+- **Response:**
+```json
+{
+  "status": "ACTIVE_SCANNING",
+  "monitoredRepositories": [
+    {
+      "id": "repo-anthropic-1",
+      "company": "Anthropic",
+      "repo_name": "vllm-project/vllm",
+      "github_url": "https://github.com/vllm-project/vllm",
+      "stars": 28400
+    }
+  ],
+  "monitoredFeeds": [
+    {
+      "id": "feed-anthropic-1",
+      "company": "Anthropic",
+      "feed_name": "Anthropic Engineering Research",
+      "recent_posts_count": 6
+    }
+  ],
+  "totalTalkingPoints": 4,
+  "lastScanTimestamp": "2026-10-15T15:20:00.000Z"
+}
+```
+
+### `POST /api/webhooks/talking-points`
+Ingests infiltration signals and tactical talking points from n8n workflows (`target-repo-watcher.json`) or autonomous crawlers into SQLite, logging a timeline event.
+- **Request Body:**
+```json
+[
+  {
+    "company": "Anthropic",
+    "application_id": "app-101",
+    "category": "COMMIT_INTELLIGENCE",
+    "headline": "vLLM KV-Cache Compaction Merge",
+    "detail": "PR #9102 merged 3 hours ago touching KV-cache block allocation. Pivot to your zero-copy LSM memory management experience.",
+    "source_url": "https://github.com/vllm-project/vllm/pull/9102",
+    "source_type": "GITHUB_COMMIT"
+  }
+]
+```
+- **Response:**
+```json
+{
+  "success": true,
+  "count": 1,
+  "ids": ["tp-1729005600000-8472"]
+}
+```
+
 ---
 
 ## 11. Data Storage & SQLite Schema (`server/db.ts`)
@@ -373,7 +522,7 @@ CREATE TABLE applications (
 CREATE TABLE timeline_events (
   id TEXT PRIMARY KEY,
   application_id TEXT,
-  event_type TEXT NOT NULL,       -- DISCOVERED, STAGED, DISPATCHED, RECRUITER_REPLY
+  event_type TEXT NOT NULL,       -- DISCOVERED, STAGED, DISPATCHED, RECRUITER_REPLY, INTELLIGENCE_INGESTED
   summary TEXT NOT NULL,
   detail TEXT,
   timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -389,11 +538,83 @@ CREATE TABLE contacts (
   linkedin_url TEXT,
   notes TEXT
 );
+
+CREATE TABLE target_repositories (
+  id TEXT PRIMARY KEY,
+  company TEXT NOT NULL,
+  repo_name TEXT NOT NULL,
+  github_url TEXT NOT NULL,
+  branch TEXT DEFAULT 'main',
+  stars INTEGER DEFAULT 0,
+  recent_activity_summary TEXT,
+  last_scanned_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE blog_rss_feeds (
+  id TEXT PRIMARY KEY,
+  company TEXT NOT NULL,
+  feed_name TEXT NOT NULL,
+  feed_url TEXT NOT NULL,
+  recent_posts_count INTEGER DEFAULT 0,
+  last_post_title TEXT,
+  last_post_url TEXT,
+  last_scanned_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE talking_points (
+  id TEXT PRIMARY KEY,
+  application_id TEXT,
+  company TEXT NOT NULL,
+  category TEXT NOT NULL,
+  headline TEXT NOT NULL,
+  detail TEXT NOT NULL,
+  source_url TEXT,
+  source_type TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (application_id) REFERENCES applications(id)
+);
 ```
 
 ---
 
-## 12. Docker Compose & Multi-Container Topology
+## 12. Infiltration Engine & Live Interview War Room (`public/war-room.html`)
+
+The **Infiltration Engine & Live Interview War Room** provides situational awareness and high-conviction talking points during live technical interviews. When speaking with hiring managers and principal systems engineers, the candidate has an air-gapped, zero-latency heads-up display (HUD) providing deep tactical alignment without looking away from camera.
+
+Launch the War Room via browser at:
+```bash
+http://localhost:3000/war-room.html?appId=app-101
+# or shorthand route
+http://localhost:3000/war-room
+```
+
+### 1. 5 High-Leverage Strategic Pillars (Pinned Teleprompter)
+Positioned in the top echelon of the HUD, 5 unassailable technical achievements are pinned for instantaneous recall. Regardless of what scenario or curveball question an interviewer poses, you can seamlessly anchor back to verified substrate accomplishments:
+- **Pillar 1:** Custom Rust/eBPF inference router (65,000 QPS, 18ms P99 latency)
+- **Pillar 2:** Dynamic speculative decoding across 256 H100 SXM5 GPUs (2.4x throughput)
+- **Pillar 3:** Host NVMe checkpoint caching Kubernetes CSI driver (3.8m -> 4.2s cold start)
+- **Pillar 4:** Zero-copy LSM-tree compaction in Rust (62% write amplification reduction)
+- **Pillar 5:** Multi-region Raft consensus with zero partition incidents over 18 months
+
+### 2. Tactical Teleprompter Stream & Instant Keyboard Filter (`/` & `Esc`)
+- Press **`/`** at any moment during the call to instantly focus the HUD search filter.
+- Type any keyword (e.g., `raft`, `ebpf`, `vllm`, `cold start`, `chunked`) to filter talking points, repo commits, and interview notes in **< 50ms**.
+- Press **`Esc`** to clear the filter and restore the full intelligence stream.
+
+### 3. Engineering Team Infiltration (GitHub & RSS Ingestion)
+- **Commit Watcher:** Integrates with `n8n-workflows/target-repo-watcher.json` to monitor public engineering commits from target companies (`vllm-project/vllm`, `modal-labs/modal-client`).
+- **Tactical Talking Points:** Translates recent PR merges and architectural commits directly into candidate milestone anchors (e.g., matching vLLM KV-cache memory commits to your custom LSM compaction work).
+- **RSS Feed Tracker:** Ingests official engineering blog feeds, exposing the exact technical challenges the team is actively wrestling with in production.
+
+### 4. Deep Interviewer Dossiers & Technical Biases
+- Displays comprehensive dossiers for interviewers: title, email, LinkedIn, background, and specific technical biases (e.g., Dr. Elena Rostova's focus on deterministic schedulers and Raft safety vs. Bernhard Baudry's focus on microVM isolation and cold start minimization).
+
+### 5. Seamless Target Switching
+- The header target selector allows switching between active pipeline applications (`app-101` Anthropic, `app-102` Modal Labs, etc.) instantaneously without reloading the page.
+
+---
+
+## 13. Docker Compose & Multi-Container Topology
 
 Run the complete isolated stack via Docker Compose:
 
@@ -408,7 +629,7 @@ docker compose up -d
 
 ---
 
-## 13. Operational Runbook & Troubleshooting
+## 14. Operational Runbook & Troubleshooting
 
 ### Resume Spilling Over to Page 2
 If adding extensive achievements causes page overflow:

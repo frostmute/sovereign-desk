@@ -20,3 +20,10 @@ This directory stores exportable workflow JSON files for the self-hosted n8n eng
 4. `dispatch-executor.json` (Milestone 4):
    - Triggered by Sovereign Desk Server 1-click authorization button.
    - Dispatches multipart form data to Greenhouse, Ashby, or Lever with the compiled Typst PDF resume.
+
+5. `target-repo-watcher.json` (Milestone 5):
+   - Triggered on a 2-hour schedule to monitor target engineering team repositories (e.g., `vllm-project/vllm`, `modal-labs/modal-client`, `kubernetes-sigs/kueue`).
+   - Polls recent GitHub commits and releases, filtering for kernel, scheduler, and memory-management commits.
+   - Synthesizes tactical talking points mapped against the candidate's verified substrate achievements.
+   - Dispatches intelligence via HTTP POST to `http://host.docker.internal:3000/api/webhooks/talking-points`.
+

@@ -108,7 +108,7 @@ An independent architectural review conducted via Claude subagent (Phase 3.5 fal
      - **Custom/Non-Standard Portals:** Fallback to a local headless Playwright script pre-filling application form fields, or an in-app 1-click clipboard staging modal with pre-formatted cover letters and responses.
 4. **Document Compiler:** Local Typst service injecting tailored bullet points into a clean Harvard-style resume template, emitting crisp 1-page PDF artifacts.
 5. **Editorial Dashboard:** Dark editorial web UI rendering the Morning Executive Briefing, Urgent Decision Queue, and Literary Bullet Diff.
-6. **Infiltration Engine & Live War Room (Post-V1 Phasing):** V1 focuses strictly on structured ATS board ingestion (Greenhouse/Ashby/Lever) and 1-click dispatch. The Infiltration Engine (monitoring target company GitHub commit activity, release notes, and engineering blog RSS feeds to identify unlisted engineering needs and arm the user with interview talking points) is architected as Milestone 5 (Post-V1 expansion).
+6. **Infiltration Engine & Live War Room (Milestone 5):** Air-gapped real-time HUD (`/war-room.html`) and commit/RSS ingestion engine (`target-repo-watcher.json`). Monitors target team GitHub commit activity and engineering blog publications to identify unlisted architectural priorities and arm the user with live teleprompter talking points during interviews.
 7. **Visual Wireframe Reference:** Captured wireframe sketch saved at `/var/folders/l3/3d4dp7750q9dqwzmw7ftcycr0000gn/T/gstack-sketch.On9hRL/sketch.png` (workspace copy at `.gstack/tmp/sketch.html`).
 
 ## Open Questions
@@ -130,11 +130,11 @@ An independent architectural review conducted via Claude subagent (Phase 3.5 fal
 
 ## Next Steps
 
-1. **Milestone 1 — Profile & Typst Engine:** Define `profile.yaml` schema and build the Typst Harvard resume template with parameter injection.
-2. **Milestone 2 — n8n Board Scraper:** Build and export the n8n workflow for scraping Greenhouse and Ashby job boards into normalized JSON payloads.
-3. **Milestone 3 — Editorial Web Interface:** Implement the dark editorial UI matching `sketch.html` (Morning Briefing, Decision Queue, Literary Diff).
-4. **Milestone 4 — 1-Click Dispatch & Email Loop:** Wire the 1-click dispatch button to n8n outbound webhooks supporting Greenhouse, Lever, and Ashby multipart submission, plus IMAP reply parsing.
-5. **Milestone 5 (Post-V1) — Infiltration Engine & Live War Room:** Implement target team GitHub commit/release watchers and engineering blog RSS ingestion (`target_repositories`, `blog_rss_feeds`, `talking_points`) for unlisted opportunity scouting and interview teleprompter briefs.
+1. **Milestone 1 — Profile & Typst Engine [COMPLETED]:** Define `profile.yaml` schema and build the Typst Harvard resume template with parameter injection.
+2. **Milestone 2 — n8n Board Scraper [COMPLETED]:** Build and export the n8n workflow for scraping Greenhouse and Ashby job boards into normalized JSON payloads.
+3. **Milestone 3 — Editorial Web Interface [COMPLETED]:** Implement the dark editorial UI matching `sketch.html` (Morning Briefing, Decision Queue, Literary Diff).
+4. **Milestone 4 — 1-Click Dispatch & Email Loop [COMPLETED]:** Wire the 1-click dispatch button to n8n outbound webhooks supporting Greenhouse, Lever, and Ashby multipart submission, plus IMAP reply parsing.
+5. **Milestone 5 — Infiltration Engine & Live War Room [COMPLETED]:** Implement target team GitHub commit/release watchers and engineering blog RSS ingestion (`target_repositories`, `blog_rss_feeds`, `talking_points`) for unlisted opportunity scouting and live interview teleprompter briefs.
 
 ## The Assignment
 
