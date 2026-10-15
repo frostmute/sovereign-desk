@@ -1,0 +1,33 @@
+# Sovereign Desk Server Dockerfile
+FROM oven/bun:1.2-debian
+
+WORKDIR /app
+
+# Install Typst binary for sub-1s local PDF compilation
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    xz-utils \
+    ca-certificates \
+    sqlite3 \
+    && ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "arm64" ]; then TYPST_ARCH="aarch64-unknown-linux-musl"; else TYPST_ARCH="x86_64-unknown-linux-musl"; fi \
+    && curl -fsSL "https://github.com/typst/typst/releases/download/v0.15.1/typst-${TYPST_ARCH}.tar.xz" -o /tmp/typst.tar.xz \
+    && tar -xf /tmp/typst.tar.xz -C /tmp \
+    && mv /tmp/typst-${TYPST_ARCH}/typst /usr/local/bin/typst \
+    && chmod +x /usr/local/bin/typst \
+    && rm -rf /tmp/typst* /var/lib/apt/lists/*
+
+# Verify Typst binary
+RUN typst --version
+
+COPY package.json ./
+# If bun.lock exists
+COPY bun.lock* ./
+
+RUN bun install --production
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["bun", "run", "server/index.ts"]

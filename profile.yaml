@@ -1,0 +1,134 @@
+# Sovereign Desk — Canonical Candidate Career Profile
+# Schema: Canonical Career Substrate for Zero-Hallucination Typst Compilation & Role Matching
+
+basics:
+  name: "Garry 'Alex' Mercer"
+  label: "Staff Distributed Systems & AI Infrastructure Engineer"
+  email: "alex.mercer.dev@pm.me"
+  phone: "+1 (415) 890-4128"
+  location: "San Francisco, CA (Remote Only)"
+  website: "https://alexmercer.io"
+  github: "https://github.com/alexmercer"
+  linkedin: "https://linkedin.com/in/alexmercer-eng"
+  summary: >
+    Staff Infrastructure Engineer with 11+ years architecting high-throughput distributed consensus engines,
+    GPU inference routing fabrics, and resilient cloud-native data platforms. Track record of scaling
+    infrastructure from early seed to $40M+ ARR while driving P99 tail latency down by an order of magnitude.
+    Staunch advocate of sovereign compute, deterministic builds, and high-leverage developer tooling.
+
+target_criteria:
+  target_roles:
+    - "Staff Software Engineer, Distributed Systems"
+    - "Principal AI Infrastructure Architect"
+    - "Founding Engineer / Staff Core Systems"
+    - "Head of Core Platform Engineering"
+  minimum_compensation:
+    base: 280000
+    currency: "USD"
+    total_target: 450000
+    equity_preference: "Substantial meaningful ownership or liquid public shares"
+  remote_policy:
+    strict_remote: true
+    primary_timezone: "UTC-8 (Pacific)"
+    allowed_overlap: "UTC-8 to UTC-4 (Minimum 4 hours US overlap required)"
+    travel_flexibility: "Quarterly executive on-sites and critical customer milestones"
+  disallowed_stacks:
+    - "Legacy Java EE / Spring 4"
+    - "PHP 5.x / WordPress monoliths"
+    - "AngularJS 1.x"
+    - "Proprietary low-code / Salesforce Apex"
+  target_company_profiles:
+    - "High-growth Series B/C scale-ups in AI, distributed databases, or developer tools"
+    - "Profitable sovereign bootstrapped engineering teams"
+    - "Post-IPO infrastructure leaders with sovereign engineering cultures"
+
+skills:
+  languages:
+    - "Rust"
+    - "Go"
+    - "TypeScript / Node / Bun"
+    - "Python"
+    - "C++20"
+    - "SQL (PostgreSQL / ClickHouse)"
+  distributed_systems:
+    - "Raft / Paxos consensus"
+    - "eBPF kernel networking"
+    - "gRPC / Protobuf"
+    - "Kafka & Redpanda event streaming"
+    - "ClickHouse & DuckDB OLAP"
+  ai_infrastructure:
+    - "vLLM & TensorRT-LLM serving"
+    - "GPU cluster scheduling (Slurm / Kubernetes)"
+    - "Distributed training checkpointer (PyTorch / Megatron)"
+    - "Vector search engines (Qdrant / Milvus / pgvector)"
+  cloud_and_platform:
+    - "Linux kernel tuning & cgroups"
+    - "Kubernetes (Operators, CRDs, Cilium CNI)"
+    - "Terraform / OpenTofu"
+    - "Observability (Prometheus, OpenTelemetry, Grafana, Jaeger)"
+    - "Docker & containerd internal architecture"
+
+experience:
+  - company: "VoxelScale AI"
+    role: "Staff Infrastructure Engineer"
+    location: "Remote"
+    start_date: "2023-03"
+    end_date: "Present"
+    summary: "Led the core GPU inference fabric team serving 120M+ multi-modal model tokens/second."
+    technologies: ["Rust", "Python", "vLLM", "Cilium eBPF", "Kubernetes", "Ray", "ClickHouse"]
+    highlights:
+      - "Architected a custom Rust/eBPF inference router that reduced cross-region P99 token latency from 142ms to 18ms under 65,000 peak QPS."
+      - "Designed automated dynamic speculative decoding pipeline across 256 H100 SXM5 GPUs, increasing inference throughput by 2.4x while lowering cloud spend by $1.8M annually."
+      - "Authored custom Kubernetes CSI driver caching quantized model checkpoints in host NVMe memory, decreasing cold container start times from 3.8 minutes to 4.2 seconds."
+      - "Mentored 8 senior engineers across distributed systems and GPU virtualization, establishing RFC review standards adopted company-wide."
+
+  - company: "Hyperion Data Systems"
+    role: "Senior Distributed Systems Engineer -> Staff Engineer"
+    location: "Remote"
+    start_date: "2020-01"
+    end_date: "2023-02"
+    summary: "Core storage engine engineer for globally distributed, multi-tenant OLAP database engine."
+    technologies: ["Go", "Rust", "Raft", "PostgreSQL internals", "RocksDB", "gRPC", "AWS"]
+    highlights:
+      - "Engineered a zero-copy compaction algorithm in Rust for the LSM-tree storage engine, reducing write amplification by 62% and eliminating disk I/O stalls."
+      - "Spearheaded the Raft consensus replication protocol refactor across multi-region clusters, achieving zero unrecoverable partition incidents over 18 consecutive months at 99.999% availability."
+      - "Formulated analytical vector execution primitives in AVX-512 assembly and Rust, accelerating analytical query scans by 4.8x."
+      - "Promoted to Staff Engineer in 2021; served as primary technical lead for cross-region disaster recovery architecture."
+
+  - company: "Aetheria Cloud"
+    role: "Senior Platform Infrastructure Engineer"
+    location: "San Francisco, CA (Remote Transition)"
+    start_date: "2017-06"
+    end_date: "2019-12"
+    summary: "Architected internal developer platform and multi-cloud Kubernetes control planes."
+    technologies: ["Go", "Kubernetes", "Terraform", "Docker", "Prometheus", "Envoy"]
+    highlights:
+      - "Scaled internal developer platform from 40 to 450+ microservices across 14 Kubernetes clusters in AWS and GCP with zero downtime."
+      - "Developed an automated traffic-shifting service mesh using Envoy and Go, reducing developer blast radius during releases and catching 94% of canary regression anomalies."
+      - "Re-architected telemetry ingestion pipeline with Redpanda and ClickHouse, processing 1.4 TB of structured logs daily while saving $350k/year in Datadog bills."
+
+  - company: "Helix Networks"
+    role: "Systems Software Engineer"
+    location: "Austin, TX"
+    start_date: "2015-08"
+    end_date: "2017-05"
+    summary: "Network software engineer building software-defined routing daemons and packet inspection engines."
+    technologies: ["C++14", "C", "Linux Kernel", "DPDK", "Python"]
+    highlights:
+      - "Built DPDK kernel-bypass packet filtering pipeline handling 40 Gbps line-rate ingress with zero dropped packets."
+      - "Diagnosed and resolved critical lock contention in multi-threaded routing table lookup, improving packet processing throughput by 38%."
+
+education:
+  - degree: "Bachelor of Science in Computer Science"
+    institution: "University of California, Berkeley"
+    location: "Berkeley, CA"
+    graduation_year: "2015"
+    details: "High Honors, Focus on Distributed Operating Systems and Computer Architecture."
+
+open_source_and_publications:
+  - title: "ebpf-net-probe"
+    description: "High-performance Linux kernel network flow telemetry collector in Rust and eBPF (1.4k GitHub stars)."
+    link: "https://github.com/alexmercer/ebpf-net-probe"
+  - title: "Deterministic Scheduling for Speculative Inference"
+    description: "Technical paper presented at Systems & ML Symposium 2024 on minimizing tail latency in distributed model serving."
+    link: "https://arxiv.org/abs/2402.00000"

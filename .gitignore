@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Runtime and compiled artifacts
+output/
+data/
+*.sqlite
+
+# Environment and secrets
+.env
+.env.local
+
+# System files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,14 @@
+{
+  "name": "sovereign-desk",
+  "version": "1.0.0",
+  "description": "Autonomous Remote Work Search Assistant & Executive Dossier Engine",
+  "type": "module",
+  "scripts": {
+    "start": "bun run server/index.ts",
+    "compile": "bun run bin/compile-resume.ts",
+    "compile:strict": "bun run bin/compile-resume.ts --strict-one-page"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  }
+}

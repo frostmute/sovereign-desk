@@ -1,0 +1,65 @@
+# Sovereign Desk — Local Autonomous Remote Work Search Architecture
+# Orchestration: Self-Hosted n8n Automation Engine + Sovereign Desk Server
+
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. n8n Automation Engine
+  # Ingests job boards (Greenhouse/Ashby/Lever), monitors IMAP inbox, routes webhooks
+  # ---------------------------------------------------------------------------
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: sovereign-desk-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_HOST=localhost
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=America/Los_Angeles
+      - N8N_SECURE_COOKIE=false
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - DESK_SERVER_URL=http://desk:3000
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n-workflows:/data/workflows
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider http://localhost:5678/healthz || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ---------------------------------------------------------------------------
+  # 2. Sovereign Desk Server & UI
+  # SQLite datastore, Typst compilation engine, LLM dossier drafter, Editorial UI
+  # ---------------------------------------------------------------------------
+  desk:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.desk
+    container_name: sovereign-desk-server
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - SQLITE_PATH=/data/sovereign-desk.sqlite
+      - N8N_WEBHOOK_BASE=http://n8n:5678/webhook
+      - PROFILE_PATH=/app/profile.yaml
+      - TYPST_ROOT=/app
+    volumes:
+      - desk_data:/data
+      - .:/app
+    depends_on:
+      n8n:
+        condition: service_healthy
+
+volumes:
+  n8n_data:
+    name: sovereign-desk-n8n-data
+  desk_data:
+    name: sovereign-desk-sqlite-data

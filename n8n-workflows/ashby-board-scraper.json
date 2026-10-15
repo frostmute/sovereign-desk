@@ -1,0 +1,102 @@
+{
+  "name": "Sovereign Desk - Ashby Board Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-ashby",
+      "name": "Schedule Trigger (Every 4 Hours)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.ashbyhq.com/posting-api/job-board/modal",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "node-http-ashby",
+      "name": "Fetch Ashby Board (Modal Labs)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const body = item.json.body || item.json;\n  const jobs = body.jobs || [];\n  \n  for (const job of jobs) {\n    const title = (job.title || '').toLowerCase();\n    const location = (job.location || '').toLowerCase();\n    const isRemote = job.isRemote === true || location.includes('remote') || location.includes('us');\n    const isTargetRole = title.includes('systems') || title.includes('infrastructure') || title.includes('distributed') || title.includes('senior') || title.includes('staff');\n    \n    if (isRemote && isTargetRole) {\n      let score = 82;\n      if (title.includes('staff') || title.includes('lead')) score += 10;\n      if (title.includes('distributed') || title.includes('infrastructure')) score += 6;\n      \n      output.push({\n        json: {\n          id: 'ashby-' + (job.id || Math.random().toString(36).substring(2, 9)),\n          company: 'Modal Labs',\n          title: job.title,\n          location: job.location || 'Remote (US)',\n          board_type: 'ashby',\n          external_url: job.jobUrl || 'https://modal.com/careers',\n          match_score: Math.min(score, 98),\n          published_at: job.publishedAt\n        }\n      });\n    }\n  }\n}\n\nreturn output;"
+      },
+      "id": "node-filter-ashby",
+      "name": "Filter Remote & Senior Roles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/api/webhooks/jobs",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "node-webhook-desk-ashby",
+      "name": "Ingest to Sovereign Desk",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 4 Hours)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Ashby Board (Modal Labs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Ashby Board (Modal Labs)": {
+      "main": [
+        [
+          {
+            "node": "Filter Remote & Senior Roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Remote & Senior Roles": {
+      "main": [
+        [
+          {
+            "node": "Ingest to Sovereign Desk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

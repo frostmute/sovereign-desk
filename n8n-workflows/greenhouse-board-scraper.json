@@ -1,0 +1,102 @@
+{
+  "name": "Sovereign Desk - Greenhouse Board Scraper",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 4
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-gh",
+      "name": "Schedule Trigger (Every 4 Hours)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://boards-api.greenhouse.io/v1/boards/anthropic/jobs?content=true",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true
+            }
+          }
+        }
+      },
+      "id": "node-http-gh",
+      "name": "Fetch Greenhouse Board (Anthropic)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const body = item.json.body || item.json;\n  const jobs = body.jobs || [];\n  \n  for (const job of jobs) {\n    const title = (job.title || '').toLowerCase();\n    const location = (job.location?.name || '').toLowerCase();\n    \n    // Filter criteria: remote/US and target engineering roles\n    const isRemote = location.includes('remote') || location.includes('anywhere') || location.includes('us');\n    const isTargetRole = title.includes('systems') || title.includes('infrastructure') || title.includes('distributed') || title.includes('staff') || title.includes('platform');\n    \n    if (isRemote && isTargetRole) {\n      // Calculate basic heuristic match score\n      let score = 80;\n      if (title.includes('staff') || title.includes('principal')) score += 10;\n      if (title.includes('distributed') || title.includes('systems')) score += 6;\n      \n      output.push({\n        json: {\n          id: 'gh-' + job.id,\n          company: 'Anthropic',\n          title: job.title,\n          location: job.location?.name || 'Remote',\n          board_type: 'greenhouse',\n          external_url: job.absolute_url,\n          match_score: Math.min(score, 99),\n          updated_at: job.updated_at\n        }\n      });\n    }\n  }\n}\n\nreturn output;"
+      },
+      "id": "node-filter-gh",
+      "name": "Filter Remote & Senior Roles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/api/webhooks/jobs",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "node-webhook-desk",
+      "name": "Ingest to Sovereign Desk",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 4 Hours)": {
+      "main": [
+        [
+          {
+            "node": "Fetch Greenhouse Board (Anthropic)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Greenhouse Board (Anthropic)": {
+      "main": [
+        [
+          {
+            "node": "Filter Remote & Senior Roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Remote & Senior Roles": {
+      "main": [
+        [
+          {
+            "node": "Ingest to Sovereign Desk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
