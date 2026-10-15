@@ -1,0 +1,107 @@
+{
+  "name": "Sovereign Desk - IMAP Recruiter Inbox Watcher",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "node-schedule-imap",
+      "name": "Schedule Trigger (Every 15 Minutes)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "mailbox": "INBOX",
+        "action": "get",
+        "format": "resolved",
+        "downloadAttachments": false,
+        "options": {
+          "customEmailConfig": "[\"UNSEEN\"]"
+        }
+      },
+      "id": "node-imap-read",
+      "name": "Poll Recruiter Inbox (IMAP)",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst output = [];\n\nfor (const item of items) {\n  const email = item.json || {};\n  const fromObj = email.from?.value?.[0] || {};\n  const senderName = fromObj.name || (fromObj.address ? fromObj.address.split('@')[0] : 'Technical Recruiter');\n  const senderEmail = fromObj.address || '';\n  const subject = email.subject || '';\n  const text = (email.text || email.html || '').toLowerCase();\n  \n  // Identify hiring company from domain or subject\n  let company = 'Target Company';\n  if (senderEmail.includes('anthropic.com') || subject.toLowerCase().includes('anthropic')) {\n    company = 'Anthropic';\n  } else if (senderEmail.includes('modal.com') || subject.toLowerCase().includes('modal')) {\n    company = 'Modal Labs';\n  } else if (senderEmail.includes('vercel.com') || subject.toLowerCase().includes('vercel')) {\n    company = 'Vercel';\n  } else if (senderEmail.includes('stripe.com') || subject.toLowerCase().includes('stripe')) {\n    company = 'Stripe';\n  } else if (senderEmail) {\n    const domainPart = senderEmail.split('@')[1]?.split('.')[0] || '';\n    if (domainPart && !['gmail', 'yahoo', 'outlook', 'proton', 'icloud'].includes(domainPart)) {\n      company = domainPart.charAt(0).toUpperCase() + domainPart.slice(1);\n    }\n  }\n  \n  // Detect intent\n  let intent = 'STATUS_UPDATE';\n  if (text.includes('calendly.com') || text.includes('schedule a call') || text.includes('invitation to interview') || text.includes('chat with the team') || text.includes('introductory call')) {\n    intent = 'INTERVIEW_INVITATION';\n  } else if (text.includes('technical screen') || text.includes('take-home') || text.includes('coderpad') || text.includes('codesignal')) {\n    intent = 'TECHNICAL_SCREEN';\n  } else if (text.includes('pleased to offer') || text.includes('next steps') || text.includes('onsite')) {\n    intent = 'ADVANCEMENT';\n  } else if (text.includes('pursue other candidates') || text.includes('not moving forward') || text.includes('unfortunately')) {\n    intent = 'REJECTION';\n  }\n  \n  // Extract proposed slots or calendar links\n  let proposedSlots = 'Flexible Availability';\n  const calendlyMatch = (email.text || '').match(/https?:\\/\\/calendly\\.com\\/[a-zA-Z0-9_-]+\\/[a-zA-Z0-9_-]+/);\n  if (calendlyMatch) {\n    proposedSlots = 'Self-Schedule Link: ' + calendlyMatch[0];\n  } else if (text.includes('tomorrow') || text.includes('monday') || text.includes('tuesday') || text.includes('wednesday') || text.includes('thursday') || text.includes('friday')) {\n    proposedSlots = 'Specific Windows Suggested in Email Body';\n  }\n  \n  // Filter out irrelevant newsletters\n  const isRecruiting = text.includes('interview') || text.includes('application') || text.includes('candidate') || text.includes('role') || text.includes('recruiter') || intent !== 'STATUS_UPDATE';\n  \n  if (isRecruiting) {\n    output.push({\n      json: {\n        company,\n        senderName,\n        senderEmail,\n        subject,\n        intent,\n        proposedSlots,\n        rawBody: (email.text || '').slice(0, 500),\n        appId: company === 'Anthropic' ? 'app-101' : (company === 'Vercel' ? 'app-gh998811' : (company === 'Modal Labs' ? 'app-102' : 'app-101'))\n      }\n    });\n  }\n}\n\nreturn output;"
+      },
+      "id": "node-parse-email",
+      "name": "Parse Recruiter Intent & Opportunities",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/api/webhooks/inbound-email",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          }
+        }
+      },
+      "id": "node-post-desk-inbound",
+      "name": "Forward to Sovereign Desk Inbound Webhook",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger (Every 15 Minutes)": {
+      "main": [
+        [
+          {
+            "node": "Poll Recruiter Inbox (IMAP)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Poll Recruiter Inbox (IMAP)": {
+      "main": [
+        [
+          {
+            "node": "Parse Recruiter Intent & Opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Recruiter Intent & Opportunities": {
+      "main": [
+        [
+          {
+            "node": "Forward to Sovereign Desk Inbound Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -11,7 +11,12 @@ import {
   getApplication,
   updateApplicationStatus,
   insertJobPosting,
+  insertTimelineEvent,
+  getTimelineEvents,
+  insertContact,
+  getContacts,
 } from "./db";
+import { generateBulletDiff, compileBespokeResume } from "./diff-engine";
 
 const PORT = parseInt(process.env.PORT || "3000", 10);
 const PROJECT_ROOT = existsSync(resolve(process.cwd(), "profile.yaml"))
@@ -19,6 +24,7 @@ const PROJECT_ROOT = existsSync(resolve(process.cwd(), "profile.yaml"))
   : resolve(import.meta.dir, "..");
 const PUBLIC_DIR = resolve(PROJECT_ROOT, "public");
 const OUTPUT_DIR = resolve(PROJECT_ROOT, "output");
+const N8N_DISPATCH_WEBHOOK = process.env.N8N_DISPATCH_WEBHOOK || "http://localhost:5678/webhook/dispatch-application";
 
 console.log(`[sovereign-desk] Initializing Sovereign Desk on port ${PORT}...`);
 
@@ -66,6 +72,57 @@ const server = Bun.serve({
       return Response.json({ applications: apps }, { headers });
     }
 
+    // API: Literary Bullet Diff for an Application
+    if (pathname === "/api/diff") {
+      const id = url.searchParams.get("id");
+      const apps = (getApplications() as any[]) || [];
+      let targetApp = id ? apps.find((a) => a.id === id) : null;
+      if (!targetApp && apps.length > 0) {
+        targetApp = apps[0];
+      }
+
+      if (!targetApp) {
+        targetApp = {
+          id: "app-default",
+          company: "Anthropic",
+          role: "Staff Systems Engineer, Cluster Orchestration",
+          match_score: 96,
+          transport: "Greenhouse API",
+        };
+      }
+
+      const diffReport = generateBulletDiff(targetApp);
+      return Response.json(diffReport, { headers });
+    }
+
+    // API: Compile Tailored Typst Resume for an Application
+    if (pathname === "/api/diff/compile" && req.method === "POST") {
+      let body: any = {};
+      try {
+        body = await req.json();
+      } catch {}
+
+      const appId = body.id;
+      const apps = (getApplications() as any[]) || [];
+      const app = apps.find((a) => a.id === appId) || {
+        id: appId || "app-101",
+        company: body.company || "Anthropic",
+        role: body.role || "Staff Systems Engineer",
+      };
+
+      const result = await compileBespokeResume(app);
+
+      // Log timeline event
+      insertTimelineEvent({
+        application_id: app.id,
+        event_type: "RECOMPILED_TYPST",
+        summary: `Tailored 1-page Typst resume compiled in ${result.latencyMs}ms.`,
+        detail: `Artifact saved to ${result.pdfPath} with zero overflow.`,
+      });
+
+      return Response.json(result, { headers });
+    }
+
     // API: Ingest Scraped Job Leads (from n8n webhooks)
     if (pathname === "/api/webhooks/jobs" && req.method === "POST") {
       try {
@@ -105,17 +162,12 @@ const server = Bun.serve({
                 }
               );
 
-              db.run(
-                `INSERT INTO timeline_events (id, application_id, event_type, summary, detail)
-                 VALUES ($id, $app_id, $type, $summary, $detail)`,
-                {
-                  $id: `evt-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-                  $app_id: appId,
-                  $type: "STAGED",
-                  $summary: `Automated match (${job.match_score}%). Staged for executive authorization.`,
-                  $detail: `Ingested via n8n ${job.board_type} scraper.`,
-                }
-              );
+              insertTimelineEvent({
+                application_id: appId,
+                event_type: "STAGED",
+                summary: `Automated match (${job.match_score}%). Staged for executive authorization.`,
+                detail: `Ingested via n8n ${job.board_type} scraper from ${job.external_url || job.company}.`,
+              });
             }
           }
         }
@@ -126,7 +178,63 @@ const server = Bun.serve({
       }
     }
 
-    // API: Trigger Compile Resume
+    // API: Ingest Inbound Recruiter Email (from n8n IMAP watcher)
+    if (pathname === "/api/webhooks/inbound-email" && req.method === "POST") {
+      try {
+        const body: any = await req.json();
+        const company = body.company;
+        const senderName = body.senderName || body.sender_name || body.name;
+        const senderEmail = body.senderEmail || body.sender_email || body.email;
+        const subject = body.subject || "Recruiter Outreach";
+        const proposedSlots = body.proposedSlots || body.proposed_slots || body.slots || "Flexible";
+        const appId = body.appId || body.application_id || body.applicationId || "app-101";
+
+        let contactId = "";
+        if (company && senderName) {
+          contactId = insertContact({
+            company,
+            name: senderName,
+            email: senderEmail || `${senderName.toLowerCase().replace(/\s+/g, ".")}@${company.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
+            title: "Technical Recruiter",
+            notes: `Inbound parsed: ${subject}`,
+          });
+        }
+
+        const eventId = insertTimelineEvent({
+          application_id: appId,
+          event_type: "INBOUND_EMAIL",
+          summary: `Recruiter outreach received from ${senderName || "Hiring Team"} (${company || "Target"}).`,
+          detail: `Subject: "${subject}". Proposed slots: ${proposedSlots}.`,
+        });
+
+        return Response.json({ success: true, eventId, contactId }, { headers });
+      } catch (err: any) {
+        return Response.json({ error: err.message }, { status: 400, headers });
+      }
+    }
+
+    // API: Timeline Events (Query or Ingest)
+    if (pathname === "/api/timeline") {
+      if (req.method === "POST") {
+        try {
+          const body: any = await req.json();
+          const eventId = insertTimelineEvent({
+            application_id: body.application_id || body.applicationId || "app-101",
+            event_type: body.event_type || body.eventType || "DISPATCH_CONFIRMED",
+            summary: body.summary || "Timeline event logged.",
+            detail: body.detail || "",
+          });
+          return Response.json({ success: true, eventId }, { headers });
+        } catch (err: any) {
+          return Response.json({ error: err.message }, { status: 400, headers });
+        }
+      }
+      const appId = url.searchParams.get("appId") || undefined;
+      const events = getTimelineEvents(appId);
+      return Response.json({ events }, { headers });
+    }
+
+    // API: Trigger Compile Resume (Default Canonical)
     if (pathname === "/api/compile" && req.method === "POST") {
       const startTime = performance.now();
       const scriptPath = resolve(PROJECT_ROOT, "bin/compile-resume.ts");
@@ -160,22 +268,41 @@ const server = Bun.serve({
       const app = getApplication(appId) as any;
       const receiptId = `DISP-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
+      // Check if custom bespoke PDF exists
+      const customPdfPath = resolve(OUTPUT_DIR, `resume-${appId}.pdf`);
+      const hasCustomPdf = existsSync(customPdfPath);
+      const attachedPdfUrl = hasCustomPdf ? `/output/resume-${appId}.pdf` : `/output/resume.pdf`;
+
       if (app) {
         updateApplicationStatus(appId, "DISPATCHED", receiptId);
-        db.run(
-          `INSERT INTO timeline_events (id, application_id, event_type, summary, detail)
-           VALUES ($id, $app_id, $type, $summary, $detail)`,
-          {
-            $id: `evt-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-            $app_id: appId,
-            $type: "DISPATCHED",
-            $summary: `1-Click dispatch authorized. Submitted to ${app.company}.`,
-            $detail: `Receipt ${receiptId} issued via ${app.transport}. Verified Typst PDF attached.`,
-          }
-        );
+        insertTimelineEvent({
+          application_id: appId,
+          event_type: "DISPATCHED",
+          summary: `1-Click dispatch authorized. Submitted to ${app.company}.`,
+          detail: `Receipt ${receiptId} issued via ${app.transport}. Attached artifact: ${attachedPdfUrl}.`,
+        });
       }
 
-      console.log(`[dispatch] Authorized 1-click dispatch for ${appId} -> Receipt ${receiptId}`);
+      console.log(`[dispatch] Authorized 1-click dispatch for ${appId} -> Receipt ${receiptId} (${attachedPdfUrl})`);
+
+      // Forward to n8n dispatch webhook asynchronously if reachable
+      try {
+        fetch(N8N_DISPATCH_WEBHOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            applicationId: appId,
+            receiptId,
+            company: app ? app.company : "Target",
+            role: app ? app.role : "Staff Engineer",
+            transport: app ? app.transport : "Greenhouse API",
+            pdfUrl: attachedPdfUrl,
+            timestamp: new Date().toISOString(),
+          }),
+        }).catch(() => {
+          // Non-blocking in local mode
+        });
+      } catch {}
 
       return Response.json(
         {
@@ -184,6 +311,7 @@ const server = Bun.serve({
           applicationId: appId,
           status: "DISPATCHED",
           transport: app ? app.transport : "Greenhouse API",
+          attachedPdf: attachedPdfUrl,
           timestamp: new Date().toISOString(),
           message: `Application submitted with verified Typst PDF resume attachment.`,
         },

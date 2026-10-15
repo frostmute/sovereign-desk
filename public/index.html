@@ -8,7 +8,7 @@
     Design Decisions & Rationale:
     1. Editorial Dossier Aesthetic: Uses deep charcoal background, subtle razor-thin borders, and high-contrast editorial typography.
     2. Zero SaaS Bloat: No bubbly cards, no pastel badges, no cartoonish Kanban columns. Information density is prioritized.
-    3. Executive Briefing Flow: Hierarchy flows from High-Level Status -> Urgent Decisional Queue -> Deep Dossier & Bullet Diff -> Live War Room Teleprompter.
+    3. Executive Briefing Flow: Hierarchy flows from High-Level Status -> Urgent Decisional Queue -> Deep Dossier & Literary Bullet Diff -> Live War Room Teleprompter.
   -->
   <style>
     :root {
@@ -118,6 +118,7 @@
       font-family: var(--font-serif);
       font-size: 24px;
       color: var(--text-main);
+      font-weight: 400;
     }
 
     .metric-sub {
@@ -126,120 +127,147 @@
       margin-top: 4px;
     }
 
-    /* Layout Columns */
+    /* Main Layout */
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 420px 1fr;
       gap: 32px;
+      align-items: start;
     }
 
-    /* Left Column: Briefing & Decision Queue */
+    /* Panel Framing */
     .panel {
       background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 24px;
+      border: 1px solid var(--border-subtle);
       margin-bottom: 24px;
+      padding: 24px;
     }
 
     .panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 20px;
       padding-bottom: 12px;
-      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .panel-title {
       font-family: var(--font-serif);
       font-size: 18px;
-      font-weight: 500;
+      font-weight: 400;
       color: var(--text-main);
     }
 
     .panel-tag {
       font-family: var(--font-mono);
       font-size: 10px;
-      color: var(--accent);
-      background: var(--accent-muted);
-      padding: 2px 8px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      background: var(--surface-elevated);
+      padding: 3px 6px;
+      border: 1px solid var(--border);
     }
 
-    /* Decision Items */
+    /* Decision Queue Items */
     .decision-item {
-      padding: 14px;
+      padding: 16px;
       border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--border);
       background: var(--surface-elevated);
       margin-bottom: 12px;
-      border-left: 3px solid var(--warning);
       transition: all 0.2s ease;
+      cursor: pointer;
     }
 
     .decision-item:hover {
       border-color: var(--accent);
+      background: #1c222c;
+    }
+
+    .decision-item.selected {
+      border-left: 3px solid var(--accent) !important;
+      background: #1e2430;
+      box-shadow: 0 0 16px rgba(212, 163, 115, 0.12);
     }
 
     .decision-meta {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-muted);
       display: flex;
       justify-content: space-between;
-      margin-bottom: 4px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 6px;
     }
 
     .decision-headline {
-      font-weight: 500;
-      font-size: 13px;
+      font-size: 14px;
+      font-weight: 600;
       color: var(--text-main);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .decision-actions {
       display: flex;
       gap: 8px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .btn {
       font-family: var(--font-mono);
       font-size: 11px;
-      padding: 5px 12px;
-      cursor: pointer;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--text-main);
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      padding: 8px 14px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .btn-primary {
       background: var(--accent);
       color: #0c0e12;
-      border-color: var(--accent);
       font-weight: 600;
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.05);
+    .btn-primary:hover {
+      background: #e5b382;
     }
 
-    /* Right Column: Deep Dossier Inspection */
+    .btn-secondary {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-muted);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      color: var(--text-main);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      font-weight: 600;
+      border-color: var(--success);
+    }
+
+    /* Right Dossier Panel */
     .dossier-card {
       background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 28px;
+      border: 1px solid var(--border-subtle);
+      padding: 32px;
     }
 
     .dossier-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 18px;
       margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-subtle);
     }
 
     .dossier-target-title {
@@ -247,14 +275,16 @@
       font-size: 26px;
       font-weight: 400;
       color: var(--text-main);
+      line-height: 1.2;
     }
 
     .dossier-target-company {
       font-family: var(--font-mono);
       font-size: 12px;
       color: var(--accent);
-      margin-top: 4px;
+      margin-top: 6px;
       letter-spacing: 0.05em;
+      text-transform: uppercase;
     }
 
     .dossier-score {
@@ -263,7 +293,7 @@
 
     .match-rate {
       font-family: var(--font-mono);
-      font-size: 20px;
+      font-size: 24px;
       color: var(--success);
       font-weight: 600;
     }
@@ -281,7 +311,7 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
       margin-bottom: 24px;
-      padding: 16px;
+      padding: 18px;
       background: var(--surface-elevated);
       border: 1px dashed var(--border);
     }
@@ -305,12 +335,15 @@
       margin-top: 24px;
     }
 
-    .diff-section h3 {
+    .diff-section-title {
       font-family: var(--font-serif);
-      font-size: 16px;
-      font-weight: 500;
+      font-size: 18px;
+      font-weight: 400;
       margin-bottom: 14px;
       color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
     .diff-container {
@@ -320,12 +353,25 @@
       margin-bottom: 14px;
     }
 
+    .diff-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
     .diff-label {
       font-family: var(--font-mono);
       font-size: 11px;
-      color: var(--text-dim);
+      color: var(--accent);
       text-transform: uppercase;
-      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .diff-section-tag {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--text-dim);
     }
 
     .diff-row {
@@ -336,27 +382,56 @@
       line-height: 1.6;
     }
 
+    .diff-col-header {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      color: var(--text-dim);
+    }
+
     .diff-baseline {
       color: var(--text-dim);
-      text-decoration: line-through;
-      padding: 10px;
-      background: rgba(255, 80, 80, 0.05);
+      padding: 12px;
+      background: rgba(255, 80, 80, 0.04);
       border-left: 2px solid rgba(255, 80, 80, 0.4);
     }
 
     .diff-bespoke {
       color: var(--text-main);
-      padding: 10px;
+      padding: 12px;
       background: rgba(63, 185, 80, 0.05);
       border-left: 2px solid var(--success);
+    }
+
+    .diff-rationale {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      font-style: italic;
+    }
+
+    .keyword-tag {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: rgba(212, 163, 115, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(212, 163, 115, 0.3);
+      margin-right: 4px;
+      margin-top: 6px;
+      border-radius: 2px;
     }
 
     .typst-preview-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #000;
-      padding: 14px 20px;
+      background: #080a0d;
+      padding: 16px 20px;
       border: 1px solid var(--border);
       margin-top: 24px;
     }
@@ -377,8 +452,8 @@
       <h1 class="briefing-title">Morning Executive Briefing</h1>
     </div>
     <div class="system-status">
-      <div><span class="status-badge"></span>n8n ENGINE ONLINE</div>
-      <div style="margin-top: 4px; color: var(--text-dim);">LAST SWEEP: 07:45 UTC &bull; 3 PENDING DISPATCHES</div>
+      <div><span class="status-badge" id="engine-status-badge"></span><span id="engine-status-text">n8n ENGINE ONLINE</span></div>
+      <div id="engine-status-sub" style="margin-top: 4px; color: var(--text-dim);">LAST SYNC: -- &bull; 0 PENDING DISPATCHES</div>
     </div>
   </header>
 
@@ -386,23 +461,23 @@
   <div class="metric-strip">
     <div class="metric-cell">
       <div class="metric-label">Curated Leads In Scope</div>
-      <div class="metric-val">12</div>
-      <div class="metric-sub">Filtered from 184 scraped roles</div>
+      <div class="metric-val" id="metric-leads">--</div>
+      <div class="metric-sub" id="metric-leads-sub">Scraped from active boards</div>
     </div>
     <div class="metric-cell">
       <div class="metric-label">Decisions Queued Today</div>
-      <div class="metric-val">3</div>
-      <div class="metric-sub">2 package approvals, 1 scheduling</div>
+      <div class="metric-val" id="metric-decisions">--</div>
+      <div class="metric-sub" id="metric-decisions-sub">Pending executive review</div>
     </div>
     <div class="metric-cell">
-      <div class="metric-label">Active Communications</div>
-      <div class="metric-val">4</div>
-      <div class="metric-sub">2 recruiter threads, 1 tech screen</div>
+      <div class="metric-label">Active Applications</div>
+      <div class="metric-val" id="metric-apps">--</div>
+      <div class="metric-sub">SQLite state store</div>
     </div>
     <div class="metric-cell">
-      <div class="metric-label">Bespoke Dossier Quality</div>
-      <div class="metric-val">9.8 / 10</div>
-      <div class="metric-sub">Typst engine &bull; zero hallucination</div>
+      <div class="metric-label">Typst Engine Quality</div>
+      <div class="metric-val">1-Page Exact</div>
+      <div class="metric-sub">Harvard Classic &bull; Sub-Second</div>
     </div>
   </div>
 
@@ -414,54 +489,12 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Urgent Decision Queue</span>
-          <span class="panel-tag">Action Required</span>
+          <span class="panel-tag" id="queue-count-tag">Live Queue</span>
         </div>
 
-        <!-- Decision 1 -->
-        <div class="decision-item">
-          <div class="decision-meta">
-            <span>PACKAGE APPROVAL</span>
-            <span style="color: var(--warning);">CRITICAL</span>
-          </div>
-          <div class="decision-headline">Staff Distributed Systems Engineer @ Stripe</div>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-            Targeted application package staged. Grounded in your 2021-2024 high-throughput consensus work.
-          </p>
-          <div class="decision-actions">
-            <button class="btn btn-primary">Approve & Dispatch</button>
-            <button class="btn btn-secondary">Review Diff</button>
-          </div>
-        </div>
-
-        <!-- Decision 2 -->
-        <div class="decision-item" style="border-left-color: var(--accent);">
-          <div class="decision-meta">
-            <span>INTERVIEW SCHEDULING</span>
-            <span>TODAY</span>
-          </div>
-          <div class="decision-headline">Linear // Recruiter Screening Window</div>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-            Inbound email parsed from Maya (Linear). 3 slots proposed matching your focus hours.
-          </p>
-          <div class="decision-actions">
-            <button class="btn btn-primary">Accept Thu 2PM</button>
-            <button class="btn btn-secondary">Counter Offer</button>
-          </div>
-        </div>
-
-        <!-- Decision 3 -->
-        <div class="decision-item" style="border-left-color: var(--border);">
-          <div class="decision-meta">
-            <span>FOLLOW-UP STAGED</span>
-            <span>STANDBY</span>
-          </div>
-          <div class="decision-headline">Vercel // Follow-up Day 5 Protocol</div>
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-            Polite value-add update referencing yesterday's Turborepo 2.0 release note.
-          </p>
-          <div class="decision-actions">
-            <button class="btn btn-secondary">Authorize Send</button>
-            <button class="btn btn-secondary">Delay 48h</button>
+        <div id="decision-queue-container">
+          <div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); padding: 12px;">
+            Loading application records from SQLite...
           </div>
         </div>
 
@@ -473,10 +506,10 @@
           <span class="panel-title">Open Ends & Intelligence</span>
           <span class="panel-tag">Monitoring</span>
         </div>
-        <ul style="list-style: none; font-size: 12px; color: var(--text-muted); line-height: 1.8;">
-          <li>&bull; <strong style="color: var(--text-main);">Fly.io:</strong> Scraped VP Eng blog on SQLite replication. Dossier flagged match.</li>
-          <li>&bull; <strong style="color: var(--text-main);">Supabase:</strong> Awaiting response on async systems inquiry (sent 3 days ago).</li>
-          <li>&bull; <strong style="color: var(--text-main);">Tailscale:</strong> Team hiring manager spotted on public PR thread; scouting profile.</li>
+        <ul id="timeline-list" style="list-style: none; font-size: 12px; color: var(--text-muted); line-height: 1.8;">
+          <li>&bull; <strong style="color: var(--text-main);">Anthropic:</strong> Ingested Staff Cluster Orchestration role (96% match). Bespoke diff ready.</li>
+          <li>&bull; <strong style="color: var(--text-main);">Vercel:</strong> Staff Distributed Systems Engineer lead ingested via Greenhouse webhook (95% match).</li>
+          <li>&bull; <strong style="color: var(--text-main);">Modal Labs:</strong> Ashby board scraper flagged Senior Infrastructure opening (92% match).</li>
         </ul>
       </div>
     </div>
@@ -486,11 +519,11 @@
       <div class="dossier-card">
         <div class="dossier-header">
           <div>
-            <h2 class="dossier-target-title">Staff Distributed Systems Engineer</h2>
-            <div class="dossier-target-company">STRIPE // INFRASTRUCTURE & STORAGE CORE &bull; REMOTE (US/EU)</div>
+            <h2 class="dossier-target-title" id="dossier-title">Staff Systems Engineer, Cluster Orchestration</h2>
+            <div class="dossier-target-company" id="dossier-company">ANTHROPIC // CLUSTER ORCHESTRATION &bull; GREENHOUSE API</div>
           </div>
           <div class="dossier-score">
-            <div class="match-rate">96%</div>
+            <div class="match-rate" id="dossier-match-score">96%</div>
             <div class="match-label">Strategic Match</div>
           </div>
         </div>
@@ -499,56 +532,39 @@
         <div class="intel-grid">
           <div class="intel-block">
             <h4>Hiring Team Infiltration</h4>
-            <p>
-              Team lead authored recent paper on deterministic Raft state machine testing. Spec matches your Raft fuzzing experience at scale.
+            <p id="dossier-infiltration">
+              Core Cluster Orchestration team coordinates multi-datacenter GPU clusters (16k+ accelerators). Recent engineering retrospectives prioritize automated node quarantine, unstranded GPU hours, and deterministic checkpoint restart under Slurm/Kubernetes.
             </p>
           </div>
           <div class="intel-block">
             <h4>Application Strategy</h4>
-            <p>
-              Elevating distributed tracing and consensus latency optimizations to top 2 bullets. Suppressing generalist web framework experience.
+            <p id="dossier-strategy">
+              Elevate large-scale GPU node topology, custom eBPF packet routing, and distributed model checkpoint streaming to top 2 bullets. Suppress generalist application/web tier mentions.
             </p>
           </div>
         </div>
 
         <!-- Literary Diff -->
         <div class="diff-section">
-          <h3>Bespoke Resume Crafting (Literary Diff)</h3>
-          
-          <div class="diff-container">
-            <div class="diff-label">Consensus Engine Bullet Point — Experience (2022-2024)</div>
-            <div class="diff-row">
-              <div class="diff-baseline">
-                "Built and maintained distributed backend services using Go and gRPC, improving uptime and system throughput across customer clusters."
-              </div>
-              <div class="diff-bespoke">
-                "Architected a low-latency Raft consensus engine in Go; eliminated tail-latency spikes by 42% under partition simulation and scaled to 1.2M writes/sec across 9 regions."
-              </div>
-            </div>
+          <div class="diff-section-title">
+            <span>Bespoke Resume Crafting (Literary Diff)</span>
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--accent); text-transform: uppercase;">Zero Hallucination</span>
           </div>
-
-          <div class="diff-container">
-            <div class="diff-label">Cover Letter Opening Paragraph</div>
-            <div class="diff-row">
-              <div class="diff-baseline">
-                "I am writing to express my enthusiastic interest in the Staff Distributed Systems Engineer position at Stripe..."
-              </div>
-              <div class="diff-bespoke">
-                "Having followed Stripe's work on deterministic database partitioning since the 2022 whitepaper, my focus for the past three years has been solving identical linearizable reads under degraded network partitions..."
-              </div>
-            </div>
+          
+          <div id="diff-items-container">
+            <!-- Dynamically populated -->
           </div>
         </div>
 
         <!-- Typst Artifact Preview Bar -->
         <div class="typst-preview-bar">
-          <div class="typst-info">
-            <span style="color: var(--accent);">&#9632;</span> TYPST COMPILED: <code>resume.pdf</code> &bull; 1 PAGE &bull; HARVARD CLASSIC SYSTEM
+          <div class="typst-info" id="typst-status-label">
+            <span style="color: var(--accent);">&#9632;</span> TYPST ENGINE: <code id="typst-filename">resume.pdf</code> &bull; 1 PAGE &bull; HARVARD SERIF
           </div>
           <div style="display: flex; gap: 8px;">
-            <a href="/output/resume.pdf" target="_blank" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">View PDF</a>
+            <a id="view-pdf-btn" href="/output/resume.pdf" target="_blank" class="btn btn-secondary" style="text-decoration: none; display: inline-flex; align-items: center;">View PDF</a>
             <button id="recompile-btn" class="btn btn-secondary" onclick="triggerRecompile()">Recompile Typst</button>
-            <button id="dispatch-btn" class="btn btn-primary" onclick="triggerDispatch('app-101')">1-Click Dispatch Application</button>
+            <button id="dispatch-btn" class="btn btn-primary" onclick="triggerActiveDispatch()">1-Click Dispatch Application</button>
           </div>
         </div>
 
@@ -558,16 +574,192 @@
   </div>
 
   <!-- Notification Toast -->
-  <div id="toast" style="display: none; position: fixed; bottom: 24px; right: 24px; background: var(--surface-elevated); border: 1px solid var(--accent); padding: 16px 20px; font-family: var(--font-mono); font-size: 12px; color: var(--text-main); box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 1000;">
+  <div id="toast" style="display: none; position: fixed; bottom: 24px; right: 24px; background: var(--surface-elevated); border: 1px solid var(--accent); padding: 16px 20px; font-family: var(--font-mono); font-size: 12px; color: var(--text-main); box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 1000; max-width: 420px;">
     <div id="toast-title" style="color: var(--accent); font-weight: bold; margin-bottom: 4px;">DISPATCH CONFIRMED</div>
-    <div id="toast-body" style="color: var(--text-muted);">Application sent via Greenhouse API</div>
+    <div id="toast-body" style="color: var(--text-muted); line-height: 1.4;">Application sent via Greenhouse API</div>
   </div>
 
   <script>
+    const state = {
+      applications: [],
+      activeAppId: null,
+      activeDiff: null,
+      status: null,
+    };
+
+    async function loadDashboard() {
+      try {
+        // 1. Fetch system status
+        const statusRes = await fetch('/api/status');
+        const statusData = await statusRes.json();
+        state.status = statusData;
+
+        document.getElementById('metric-leads').innerText = statusData.ingestedJobs + 2;
+        document.getElementById('metric-decisions').innerText = statusData.pendingDecisions;
+        document.getElementById('metric-apps').innerText = statusData.activeApplications;
+        document.getElementById('engine-status-sub').innerText = `LAST SYNC: ${statusData.lastSync} • ${statusData.pendingDecisions} PENDING DISPATCHES`;
+
+        // 2. Fetch applications
+        const appsRes = await fetch('/api/applications');
+        const appsData = await appsRes.json();
+        state.applications = appsData.applications || [];
+
+        renderQueue();
+
+        // 3. Fetch live timeline events
+        await loadTimeline();
+
+        // 4. Select first application if none selected
+        if (state.applications.length > 0) {
+          const firstApp = state.applications[0];
+          selectApplication(firstApp.id);
+        }
+      } catch (err) {
+        console.error("Dashboard load failed:", err);
+      }
+    }
+
+    async function loadTimeline() {
+      try {
+        const res = await fetch('/api/timeline');
+        const data = await res.json();
+        const list = document.getElementById('timeline-list');
+        if (data.events && data.events.length > 0) {
+          list.innerHTML = data.events.slice(0, 6).map(e => `
+            <li style="margin-bottom: 8px;">
+              &bull; <strong style="color: var(--text-main);">${e.event_type.replace(/_/g, ' ')}:</strong> ${e.summary}
+              <div style="font-size: 11px; color: var(--text-dim); margin-left: 12px;">${e.detail || ''} <span style="opacity: 0.6;">(${e.timestamp})</span></div>
+            </li>
+          `).join('');
+        }
+      } catch (err) {
+        console.error("Timeline load failed:", err);
+      }
+    }
+
+    function renderQueue() {
+      const container = document.getElementById('decision-queue-container');
+      if (!state.applications || state.applications.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; padding: 12px;">No active applications in queue.</div>';
+        return;
+      }
+
+      document.getElementById('queue-count-tag').innerText = `${state.applications.length} Staged`;
+
+      container.innerHTML = state.applications.map(app => {
+        const isSelected = app.id === state.activeAppId;
+        const isDispatched = app.status === 'DISPATCHED';
+
+        let statusBadge = `<span style="color: var(--warning); font-weight: bold;">CRITICAL REVIEW</span>`;
+        if (isDispatched) {
+          statusBadge = `<span style="color: var(--success); font-weight: bold;">DISPATCHED [${app.receipt_id || 'RECEIPT'}]</span>`;
+        }
+
+        return `
+          <div class="decision-item ${isSelected ? 'selected' : ''}" onclick="selectApplication('${app.id}')" style="border-left-color: ${isDispatched ? 'var(--success)' : (app.match_score >= 95 ? 'var(--accent)' : 'var(--border)')};">
+            <div class="decision-meta">
+              <span>${app.company.toUpperCase()} // ${app.transport || 'API'}</span>
+              ${statusBadge}
+            </div>
+            <div class="decision-headline">${app.role}</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+              Strategic Match: <strong style="color: var(--text-main);">${app.match_score}%</strong> • Staged: ${app.staged_at || 'Today'}
+            </p>
+            <div class="decision-actions" onclick="event.stopPropagation()">
+              ${isDispatched 
+                ? `<button class="btn btn-success" disabled>Dispatched (${app.receipt_id})</button>`
+                : `<button class="btn btn-primary" onclick="triggerDispatch('${app.id}')">Approve & Dispatch</button>`
+              }
+              <button class="btn btn-secondary" onclick="selectApplication('${app.id}')">Review Diff</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function selectApplication(appId) {
+      state.activeAppId = appId;
+      renderQueue();
+
+      try {
+        const diffRes = await fetch(`/api/diff?id=${appId}`);
+        const diffData = await diffRes.json();
+        state.activeDiff = diffData;
+
+        // Populate Dossier
+        document.getElementById('dossier-title').innerText = diffData.role;
+        document.getElementById('dossier-company').innerText = `${diffData.company.toUpperCase()} // ${diffData.transport.toUpperCase()}`;
+        document.getElementById('dossier-match-score').innerText = `${diffData.matchScore}%`;
+        document.getElementById('dossier-infiltration').innerText = diffData.teamInfiltration;
+        document.getElementById('dossier-strategy').innerText = diffData.applicationStrategy;
+
+        // Render Literary Bullet Diffs
+        const diffContainer = document.getElementById('diff-items-container');
+        diffContainer.innerHTML = diffData.bullets.map(b => `
+          <div class="diff-container">
+            <div class="diff-header">
+              <span class="diff-label">${b.title}</span>
+              <span class="diff-section-tag">${b.section}</span>
+            </div>
+            <div class="diff-row">
+              <div>
+                <div class="diff-col-header">Canonical Profile Baseline</div>
+                <div class="diff-baseline">${b.baseline}</div>
+              </div>
+              <div>
+                <div class="diff-col-header" style="color: var(--success);">Bespoke Tailored Variant (Typst)</div>
+                <div class="diff-bespoke">${b.bespoke}</div>
+              </div>
+            </div>
+            <div class="diff-rationale">
+              <strong>Strategic Rationale:</strong> ${b.rationale}
+            </div>
+            <div>
+              ${b.matchedKeywords.map(k => `<span class="keyword-tag">${k}</span>`).join('')}
+            </div>
+          </div>
+        `).join('');
+
+        // Update Typst bar
+        const app = state.applications.find(a => a.id === appId);
+        const isDispatched = app && app.status === 'DISPATCHED';
+
+        const pdfUrl = diffData.customPdfAvailable ? `/output/resume-${appId}.pdf` : `/output/resume.pdf`;
+        const pdfFileName = diffData.customPdfAvailable ? `resume-${appId}.pdf` : `resume.pdf`;
+
+        document.getElementById('typst-filename').innerText = pdfFileName;
+        document.getElementById('view-pdf-btn').href = pdfUrl;
+
+        const dispatchBtn = document.getElementById('dispatch-btn');
+        if (isDispatched) {
+          dispatchBtn.innerText = `DISPATCHED [${app.receipt_id}]`;
+          dispatchBtn.className = 'btn btn-success';
+          dispatchBtn.disabled = true;
+        } else {
+          dispatchBtn.innerText = '1-Click Dispatch Application';
+          dispatchBtn.className = 'btn btn-primary';
+          dispatchBtn.disabled = false;
+        }
+
+      } catch (err) {
+        console.error("Failed to load application diff:", err);
+      }
+    }
+
+    async function triggerActiveDispatch() {
+      if (!state.activeAppId) return;
+      await triggerDispatch(state.activeAppId);
+    }
+
     async function triggerDispatch(appId) {
-      const btn = document.getElementById('dispatch-btn');
-      btn.innerText = 'DISPATCHING...';
-      btn.disabled = true;
+      const app = state.applications.find(a => a.id === appId);
+      const company = app ? app.company : 'Target';
+
+      const dispatchBtn = document.getElementById('dispatch-btn');
+      if (state.activeAppId === appId) {
+        dispatchBtn.innerText = 'DISPATCHING...';
+        dispatchBtn.disabled = true;
+      }
 
       try {
         const res = await fetch('/api/dispatch', {
@@ -576,16 +768,31 @@
           body: JSON.stringify({ id: appId })
         });
         const data = await res.json();
-        
-        btn.innerText = 'DISPATCHED [RECEIPT ' + data.receipt + ']';
-        btn.style.background = 'var(--success)';
-        btn.style.borderColor = 'var(--success)';
-        btn.style.color = '#fff';
 
-        showToast('DISPATCH CONFIRMED — ' + data.receipt, 'Verified Typst PDF resume transmitted to Greenhouse API.');
+        // Update local state
+        if (app) {
+          app.status = 'DISPATCHED';
+          app.receipt_id = data.receipt;
+        }
+
+        renderQueue();
+
+        if (state.activeAppId === appId) {
+          dispatchBtn.innerText = `DISPATCHED [${data.receipt}]`;
+          dispatchBtn.className = 'btn btn-success';
+          dispatchBtn.disabled = true;
+        }
+
+        showToast(
+          `DISPATCH CONFIRMED — ${data.receipt}`,
+          `Application for ${company} transmitted via ${data.transport}. Attached artifact: ${data.attachedPdf}`
+        );
+        await loadTimeline();
       } catch (err) {
-        btn.innerText = 'ERROR';
-        btn.disabled = false;
+        if (state.activeAppId === appId) {
+          dispatchBtn.innerText = 'DISPATCH ERROR';
+          dispatchBtn.disabled = false;
+        }
         showToast('DISPATCH ERROR', err.message);
       }
     }
@@ -596,14 +803,24 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch('/api/compile', { method: 'POST' });
+        const appId = state.activeAppId || 'app-101';
+        const res = await fetch('/api/diff/compile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: appId })
+        });
         const data = await res.json();
-        btn.innerText = 'RECOMPILED (' + data.latencyMs + 'ms)';
+
+        btn.innerText = `RECOMPILED (${data.latencyMs}ms)`;
+        document.getElementById('typst-filename').innerText = `resume-${appId}.pdf`;
+        document.getElementById('view-pdf-btn').href = data.pdfUrl;
+
         setTimeout(() => {
           btn.innerText = 'Recompile Typst';
           btn.disabled = false;
-        }, 2000);
-        showToast('TYPST RECOMPILED', 'Compiled single-page PDF in ' + data.latencyMs + 'ms with 0 errors.');
+        }, 2500);
+
+        showToast('TYPST RECOMPILED', `Generated bespoke 1-page PDF (${data.latencyMs}ms) tailored to ${state.activeDiff?.company || 'role'}.`);
       } catch (err) {
         btn.innerText = 'ERROR';
         btn.disabled = false;
@@ -618,8 +835,10 @@
       toast.style.display = 'block';
       setTimeout(() => {
         toast.style.display = 'none';
-      }, 5000);
+      }, 5500);
     }
+
+    window.addEventListener('DOMContentLoaded', loadDashboard);
   </script>
 
 </body>

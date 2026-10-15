@@ -67,13 +67,39 @@ db.run(`
 // Seed default applications if empty
 const count = db.query("SELECT COUNT(*) as count FROM applications").get() as { count: number };
 if (count.count === 0) {
+  const insertJob = db.prepare(`
+    INSERT OR REPLACE INTO job_postings (id, company, title, location, board_type, external_url, match_score)
+    VALUES ($id, $company, $title, $location, $board_type, $external_url, $match_score)
+  `);
+
+  insertJob.run({
+    $id: "gh-anthropic-101",
+    $company: "Anthropic",
+    $title: "Staff Systems Engineer, Cluster Orchestration",
+    $location: "San Francisco, CA / Remote",
+    $board_type: "greenhouse",
+    $external_url: "https://boards.greenhouse.io/anthropic/jobs/101",
+    $match_score: 96,
+  });
+
+  insertJob.run({
+    $id: "ashby-modal-102",
+    $company: "Modal Labs",
+    $title: "Senior Distributed Systems Infrastructure",
+    $location: "Remote (US)",
+    $board_type: "ashby",
+    $external_url: "https://jobs.ashbyhq.com/modal/102",
+    $match_score: 92,
+  });
+
   const insertApp = db.prepare(`
-    INSERT INTO applications (id, company, role, match_score, status, transport, staged_at)
-    VALUES ($id, $company, $role, $match_score, $status, $transport, $staged_at)
+    INSERT INTO applications (id, job_id, company, role, match_score, status, transport, staged_at)
+    VALUES ($id, $job_id, $company, $role, $match_score, $status, $transport, $staged_at)
   `);
 
   insertApp.run({
     $id: "app-101",
+    $job_id: "gh-anthropic-101",
     $company: "Anthropic",
     $role: "Staff Systems Engineer, Cluster Orchestration",
     $match_score: 96,
@@ -84,6 +110,7 @@ if (count.count === 0) {
 
   insertApp.run({
     $id: "app-102",
+    $job_id: "ashby-modal-102",
     $company: "Modal Labs",
     $role: "Senior Distributed Systems Infrastructure",
     $match_score: 92,
@@ -121,6 +148,69 @@ export function updateApplicationStatus(id: string, status: string, receiptId?: 
      WHERE id = $id`,
     { $id: id, $status: status, $receiptId: receiptId || null }
   );
+}
+
+export function insertTimelineEvent(event: {
+  application_id: string;
+  event_type: string;
+  summary: string;
+  detail?: string;
+}) {
+  const id = `evt-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+  db.run(
+    `INSERT INTO timeline_events (id, application_id, event_type, summary, detail)
+     VALUES ($id, $app_id, $type, $summary, $detail)`,
+    {
+      $id: id,
+      $app_id: event.application_id,
+      $type: event.event_type,
+      $summary: event.summary,
+      $detail: event.detail || "",
+    }
+  );
+  return id;
+}
+
+export function getTimelineEvents(applicationId?: string) {
+  if (applicationId) {
+    return db
+      .query("SELECT * FROM timeline_events WHERE application_id = $id ORDER BY timestamp DESC")
+      .all({ $id: applicationId });
+  }
+  return db.query("SELECT * FROM timeline_events ORDER BY timestamp DESC LIMIT 50").all();
+}
+
+export function insertContact(contact: {
+  id?: string;
+  company: string;
+  name: string;
+  title?: string;
+  email?: string;
+  linkedin_url?: string;
+  notes?: string;
+}) {
+  const id = contact.id || `ct-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+  db.run(
+    `INSERT OR REPLACE INTO contacts (id, company, name, title, email, linkedin_url, notes)
+     VALUES ($id, $company, $name, $title, $email, $linkedin_url, $notes)`,
+    {
+      $id: id,
+      $company: contact.company,
+      $name: contact.name,
+      $title: contact.title || "",
+      $email: contact.email || "",
+      $linkedin_url: contact.linkedin_url || "",
+      $notes: contact.notes || "",
+    }
+  );
+  return id;
+}
+
+export function getContacts(company?: string) {
+  if (company) {
+    return db.query("SELECT * FROM contacts WHERE company = $comp").all({ $comp: company });
+  }
+  return db.query("SELECT * FROM contacts ORDER BY company ASC").all();
 }
 
 export function insertJobPosting(job: {

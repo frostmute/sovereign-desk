@@ -113,8 +113,10 @@ async function main() {
   const typstProc = Bun.spawnSync(["which", "typst"]);
   const typstBin = typstProc.stdout.toString().trim() || "typst";
 
-  // Compute profile path relative to project root
-  const projectRoot = dirname(opts.profilePath);
+  // Compute project root (parent directory of template)
+  const projectRoot = existsSync(resolve(dirname(opts.templatePath), "..", "templates"))
+    ? resolve(dirname(opts.templatePath), "..")
+    : (existsSync(resolve(process.cwd(), "templates")) ? process.cwd() : resolve(import.meta.dir, ".."));
   const relProfile = "/" + relative(projectRoot, opts.profilePath).replace(/^[/\\]+/, "");
 
   const typstArgs = [
