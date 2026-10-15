@@ -3,6 +3,8 @@
 > **Autonomous Remote Work Search Assistant & Executive Dossier Engine**  
 > Air-gapped, self-hosted talent operations for senior engineers and technology leaders. Zero data leakage, sub-second mathematical resume compilation, and high-density editorial briefing.
 
+<img width="1274" height="1711" alt="sovereign-desk" src="https://github.com/user-attachments/assets/3cf3f762-7dfe-4a7a-8c9a-0946d954371f" /><img width="1274" height="1640" alt="sovereign-desk-2" src="https://github.com/user-attachments/assets/c7f9fd70-65bf-4b7f-977a-d02e5a573b4b" />
+
 ---
 
 ## Table of Contents
